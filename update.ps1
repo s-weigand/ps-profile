@@ -51,6 +51,7 @@ $Tools = @(
     'ajeetdsouza.zoxide',
     'BurntSushi.ripgrep.MSVC',
     'sharkdp.bat',
+    'sharkdp.fd',
     'Schniz.fnm'
 )
 foreach ($Tool in $Tools) {

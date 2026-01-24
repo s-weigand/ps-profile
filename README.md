@@ -23,6 +23,7 @@ iex "& { $(irm 'https://raw.githubusercontent.com/s-weigand/ps-profile/main/inst
 - **[Zoxide](https://github.com/ajeetdsouza/zoxide)** - Smart `z` command for directory navigation
 - **[Ripgrep](https://github.com/BurntSushi/ripgrep)** - Fast text search with PowerShell completions
 - **[bat](https://github.com/sharkdp/bat)** - A cat clone with syntax highlighting and Git integration
+- **[fd](https://github.com/sharkdp/fd)** - A fast and user-friendly alternative to find
 - **[Fast Node Manager (fnm)](https://github.com/Schniz/fnm)** - Node.js version manager
 - **[uv](https://github.com/astral-sh/uv)** - Fast Python package installer and resolver
 - **[MesloLGS NF Font](https://github.com/romkatv/powerlevel10k-media)** - Powerline-compatible font with icons (auto-configured for Windows Terminal and VS Code)
@@ -65,7 +66,7 @@ The [install.ps1](install.ps1) script automates:
 
 1. Setting PowerShell execution policy to RemoteSigned
 2. Installing PowerShell modules (PSReadLine, Terminal-Icons)
-3. Installing external tools via winget (Oh-My-Posh, zoxide, ripgrep, bat, fnm, uv)
+3. Installing external tools via winget (Oh-My-Posh, zoxide, ripgrep, bat, fd, fnm, uv)
 4. Installing and auto-configuring MesloLGS NF font for Windows Terminal and VS Code
 5. Copying profile files to PowerShell directories
 6. Generating ripgrep completions
@@ -87,6 +88,7 @@ winget install JanDeDobbeleer.OhMyPosh --silent -s winget
 winget install ajeetdsouza.zoxide --silent -s winget
 winget install BurntSushi.ripgrep.MSVC --silent -s winget
 winget install sharkdp.bat --silent -s winget
+winget install sharkdp.fd --silent -s winget
 winget install Schniz.fnm --silent -s winget
 winget install astral-sh.uv --silent -s winget
 
