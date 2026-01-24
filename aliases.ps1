@@ -14,8 +14,20 @@ function .. {
 
 # Update PowerShell profile as admin
 function update-ps-profile {
-    $UpdateScript = "iex (irm 'https://raw.githubusercontent.com/s-weigand/ps-profile/main/update.ps1')"
-    Start-Process powershell -ArgumentList "-NoExit", "-Command", $UpdateScript -Verb RunAs -Wait
+    $repoBase = $null
+    if ($Global:PSProfileRepoBase) {
+        $repoBase = "$Global:PSProfileRepoBase".TrimEnd('/')
+    } elseif (Get-Command Get-PSProfileRepoBase -ErrorAction SilentlyContinue) {
+        $repoBase = (Get-PSProfileRepoBase).TrimEnd('/')
+    } else {
+        $repoBase = 'https://raw.githubusercontent.com/s-weigand/ps-profile/main'
+    }
+
+    $updateUrl = "$repoBase/update.ps1"
+    $UpdateScript = "iex (irm '$updateUrl')"
+
+    $shell = if (Get-Command pwsh -ErrorAction SilentlyContinue) { 'pwsh' } else { 'powershell' }
+    Start-Process $shell -ArgumentList "-NoExit", "-Command", $UpdateScript -Verb RunAs -Wait
 }
 
 

@@ -101,6 +101,51 @@ if (Get-Command zoxide -ErrorAction SilentlyContinue) {
     Invoke-Expression (& { (zoxide init powershell | Out-String) })
 }
 
+##################################
+##          REPO CONFIG          ##
+##################################
+
+# Upstream defaults (credit + optional ahead-of-fork notice during updates)
+if (-not $Global:PSProfileUpstreamOwner) { $Global:PSProfileUpstreamOwner = 's-weigand' }
+if (-not $Global:PSProfileUpstreamName) { $Global:PSProfileUpstreamName = 'ps-profile' }
+if (-not $Global:PSProfileUpstreamBranch) { $Global:PSProfileUpstreamBranch = 'main' }
+if (-not $Global:PSProfileUpstreamBase) { $Global:PSProfileUpstreamBase = 'https://raw.githubusercontent.com/s-weigand/ps-profile/main' }
+
+# Selected repo defaults to upstream unless overridden by persisted config
+if (-not $Global:PSProfileRepoOwner) { $Global:PSProfileRepoOwner = $Global:PSProfileUpstreamOwner }
+if (-not $Global:PSProfileRepoName) { $Global:PSProfileRepoName = $Global:PSProfileUpstreamName }
+if (-not $Global:PSProfileRepoBranch) { $Global:PSProfileRepoBranch = $Global:PSProfileUpstreamBranch }
+
+$RepoConfigCandidates = @(
+    (Join-Path $PSScriptRoot 'ps-profile.repo.ps1'),
+    (Join-Path $HOME 'Documents\PowerShell\ps-profile.repo.ps1'),
+    (Join-Path $HOME 'Documents\WindowsPowerShell\ps-profile.repo.ps1')
+) | Where-Object { Test-Path $_ } | Select-Object -Unique
+
+foreach ($candidate in $RepoConfigCandidates) {
+    try {
+        . $candidate
+        break
+    } catch {
+        # Non-fatal: keep defaults
+    }
+}
+
+function Get-PSProfileRepoBase {
+    param(
+        [string]$Owner = $Global:PSProfileRepoOwner,
+        [string]$Name = $Global:PSProfileRepoName,
+        [string]$Branch = $Global:PSProfileRepoBranch
+    )
+    return ("https://raw.githubusercontent.com/$Owner/$Name/$Branch").TrimEnd('/')
+}
+
+if (-not $Global:PSProfileRepoBase) {
+    $Global:PSProfileRepoBase = Get-PSProfileRepoBase
+} else {
+    $Global:PSProfileRepoBase = "$Global:PSProfileRepoBase".TrimEnd('/')
+}
+
 # Ripgrep completions
 # Generated with: rg --generate complete-powershell > completions/_rg.ps1
 $RgCompletions = Join-Path $PSScriptRoot 'completions/_rg.ps1'
