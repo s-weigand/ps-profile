@@ -171,6 +171,56 @@ if (Test-Path $TerminalSettingsPath) {
     Write-Host "  ✓ Windows Terminal settings not found (will use default when available)" -ForegroundColor Gray
 }
 
+# Configure VS Code integrated terminal font
+Write-Host "Configuring VS Code integrated terminal font..." -ForegroundColor Yellow
+$VSCodeSettingsPath = "$env:APPDATA\Code\User\settings.json"
+$VSCodeUserDir = Split-Path $VSCodeSettingsPath -Parent
+
+# Create VS Code User directory if it doesn't exist
+if (-not (Test-Path $VSCodeUserDir)) {
+    New-Item -ItemType Directory -Path $VSCodeUserDir -Force | Out-Null
+}
+
+if (Test-Path $VSCodeSettingsPath) {
+    # Backup the existing settings file
+    $backupPath = "$VSCodeSettingsPath.bk"
+    $counter = 1
+    while (Test-Path $backupPath) {
+        $backupPath = "$VSCodeSettingsPath.bk$counter"
+        $counter++
+    }
+    Copy-Item $VSCodeSettingsPath $backupPath
+    Write-Host "  ✓ Backed up VS Code settings to $(Split-Path $backupPath -Leaf)" -ForegroundColor Gray
+
+    try {
+        $VSCodeSettings = Get-Content $VSCodeSettingsPath -Raw | ConvertFrom-Json
+
+        # Set the integrated terminal font
+        if ($VSCodeSettings.PSObject.Properties.Name -contains 'terminal.integrated.fontFamily') {
+            $VSCodeSettings.'terminal.integrated.fontFamily' = 'MesloLGS NF'
+        } else {
+            $VSCodeSettings | Add-Member -MemberType NoteProperty -Name 'terminal.integrated.fontFamily' -Value 'MesloLGS NF' -Force
+        }
+
+        # Save settings with proper formatting and depth
+        $VSCodeSettings | ConvertTo-Json -Depth 10 | Set-Content $VSCodeSettingsPath -Encoding utf8
+        Write-Host "  ✓ VS Code integrated terminal font configured" -ForegroundColor Green
+    } catch {
+        Write-Host "  ✗ Failed to configure VS Code font: $_" -ForegroundColor Red
+    }
+} else {
+    # Create new settings file with font configuration
+    try {
+        $VSCodeSettings = [PSCustomObject]@{
+            'terminal.integrated.fontFamily' = 'MesloLGS NF'
+        }
+        $VSCodeSettings | ConvertTo-Json -Depth 10 | Set-Content $VSCodeSettingsPath -Encoding utf8
+        Write-Host "  ✓ Created VS Code settings with integrated terminal font configured" -ForegroundColor Green
+    } catch {
+        Write-Host "  ✗ Failed to create VS Code settings: $_" -ForegroundColor Red
+    }
+}
+
 # Function to create backup of existing file
 function Backup-ExistingFile {
     param([string]$FilePath)
