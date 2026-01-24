@@ -14,15 +14,17 @@ iex "& { $(irm 'https://raw.githubusercontent.com/s-weigand/ps-profile/main/inst
 
 ### PowerShell Modules
 
-- **PSReadLine** - Enhanced command-line editing with custom key bindings
-- **Terminal-Icons** - File icons in terminal
+- **[PSReadLine](https://github.com/PowerShell/PSReadLine)** - Enhanced command-line editing with custom key bindings
+- **[Terminal-Icons](https://github.com/devblackops/Terminal-Icons)** - File icons in terminal
 
 ### External Tools
 
-- **Oh-My-Posh** - Cross-shell prompt theme with git status, language versions
-- **Zoxide** - Smart `z` command for directory navigation
-- **Ripgrep** - Fast text search with PowerShell completions
-- **Fast Node Manager (fnm)** - Node.js version manager
+- **[Oh-My-Posh](https://ohmyposh.dev/)** - Cross-shell prompt theme with git status, language versions
+- **[Zoxide](https://github.com/ajeetdsouza/zoxide)** - Smart `z` command for directory navigation
+- **[Ripgrep](https://github.com/BurntSushi/ripgrep)** - Fast text search with PowerShell completions
+- **[Fast Node Manager (fnm)](https://github.com/Schniz/fnm)** - Node.js version manager
+- **[uv](https://github.com/astral-sh/uv)** - Fast Python package installer and resolver
+- **[MesloLGS NF Font](https://github.com/romkatv/powerlevel10k-media)** - Powerline-compatible font with icons (auto-configured for Windows Terminal and VS Code)
 
 ### Development Tools
 
@@ -54,18 +56,44 @@ iex "& { $(irm 'https://raw.githubusercontent.com/s-weigand/ps-profile/main/inst
 - `pa` - Run pre-commit on all files
 - `..` - Navigate to parent directory
 - `z` - Smart directory navigation (zoxide)
+- `update-ps-profile` - Update profile files and tools to latest versions
 
 ## Manual Installation
 
-The [install.ps1](install.ps1) script handles all installation automatically, including:
+The [install.ps1](install.ps1) script automates:
 
 1. Setting PowerShell execution policy to RemoteSigned
 2. Installing PowerShell modules (PSReadLine, Terminal-Icons)
-3. Installing external tools via winget (Oh-My-Posh, zoxide, ripgrep, fnm)
-4. Downloading and copying profile files to PowerShell directories
-5. Generating ripgrep completions
+3. Installing external tools via winget (Oh-My-Posh, zoxide, ripgrep, fnm, uv)
+4. Installing and auto-configuring MesloLGS NF font for Windows Terminal and VS Code
+5. Copying profile files to PowerShell directories
+6. Generating ripgrep completions
 
-To install manually, review and run the install script or extract the individual commands from it.
+### Manual Tool Installation
+
+If you prefer to install components individually:
+
+```powershell
+# Set execution policy
+Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser -Force
+
+# Install PowerShell modules
+Install-Module -Name PSReadLine -Scope CurrentUser -Force
+Install-Module -Name Terminal-Icons -Scope CurrentUser -Force
+
+# Install external tools via winget
+winget install JanDeDobbeleer.OhMyPosh --silent -s winget
+winget install ajeetdsouza.zoxide --silent -s winget
+winget install BurntSushi.ripgrep.MSVC --silent -s winget
+winget install Schniz.fnm --silent -s winget
+winget install astral-sh.uv --silent -s winget
+
+# Generate ripgrep completions
+rg --generate complete-powershell | Out-File ~\Documents\PowerShell\completions\_rg.ps1 -Encoding utf8
+rg --generate complete-powershell | Out-File ~\Documents\WindowsPowerShell\completions\_rg.ps1 -Encoding utf8
+
+# Download and install profile files manually from the repository
+```
 
 ## Update
 
@@ -81,18 +109,4 @@ Fork this repository and modify:
 - [aliases.ps1](aliases.ps1) - Custom functions and aliases
 - [themes/ohmy-posh.omp.json](themes/ohmy-posh.omp.json) - Prompt theme
 
-The profile uses host detection to conditionally load features:
-
-- PSReadLine configurations only load for console hosts
-- Terminal-Icons only loads for PowerShell 7+
-- All tools gracefully handle missing dependencies
-
-## Compatibility
-
-- **PowerShell 5.x** (Windows PowerShell)
-- **PowerShell 7+** (PowerShell Core)
-- **VS Code Terminal**
-- **Windows Terminal**
-- **Classic Console Host**
-
-The profile automatically detects the host and loads appropriate features for maximum compatibility.
+All tools gracefully handle missing dependencies with conditional checks.
