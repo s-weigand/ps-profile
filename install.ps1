@@ -61,7 +61,13 @@ if ($inferredRepo) {
 }
 
 if ($RepoOwner -and ($RepoOwner -ne 's-weigand')) {
-    $message = "This installer script was downloaded from a fork (https://github.com/$RepoOwner/$RepoName).\n\nAre you sure you know what this script is going to do to your PC before you run it?\n\nType YES to continue"
+    $message = @"
+This installer script was downloaded from a fork (https://github.com/$RepoOwner/$RepoName).
+
+Are you sure you know what this script is going to do to your PC before you run it?
+
+Type YES to continue
+"@
 
     $confirmation = $null
     try {
