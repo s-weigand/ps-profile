@@ -196,19 +196,22 @@ foreach ($FontUrl in $FontUrls) {
 # Install fonts using shell interface for proper registration
 $shell = New-Object -ComObject Shell.Application
 $fonts = $shell.Namespace(0x14)  # CSIDL_FONTS
+$userFontsDir = Join-Path $env:LOCALAPPDATA 'Microsoft\Windows\Fonts'
 
 Get-ChildItem $TempFontsFolder -Filter "*.ttf" | ForEach-Object {
     $FontFile = $_.FullName
     $FontName = $_.Name
+    $systemFontPath = Join-Path "$env:WINDIR\Fonts" $FontName
+    $userFontPath = Join-Path $userFontsDir $FontName
 
     try {
-        # Check if font is already installed
-        $installedFonts = Get-ChildItem "$env:WINDIR\Fonts" -Filter "*$($_.BaseName)*"
-        if (-not $installedFonts) {
-            $fonts.CopyHere($FontFile)
-            Write-Host "  ✓ Installed $FontName" -ForegroundColor Green
-        } else {
+        if ((Test-Path $systemFontPath) -or (Test-Path $userFontPath)) {
             Write-Host "  ✓ $FontName (already installed)" -ForegroundColor Gray
+        } else {
+            # FOF_SILENT (0x4) + FOF_NOCONFIRMATION (0x10) + FOF_NOERRORUI (0x400)
+            $copyFlags = 0x0414
+            $fonts.CopyHere($FontFile, $copyFlags)
+            Write-Host "  ✓ Installed $FontName" -ForegroundColor Green
         }
     } catch {
         Write-Host "  ✗ Failed to install $FontName" -ForegroundColor Red
