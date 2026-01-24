@@ -113,3 +113,7 @@ $AliasesPath = Join-Path $PSScriptRoot 'aliases.ps1'
 if (Test-Path $AliasesPath) {
     . $AliasesPath
 }
+
+if (Get-Command code -ErrorAction SilentlyContinue) {
+    $ENV:EDITOR = 'code'
+}
