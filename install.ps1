@@ -164,6 +164,29 @@ if (Test-Path $TerminalSettingsPath) {
             }
         }
 
+        # Disable Alt+Enter keybinding (toggles fullscreen by default)
+        if (-not $TerminalSettings.actions) {
+            $TerminalSettings | Add-Member -MemberType NoteProperty -Name 'actions' -Value @() -Force
+        }
+
+        # Check if Alt+Enter is already unbound
+        $altEnterUnbound = $TerminalSettings.actions | Where-Object {
+            $_.keys -eq 'alt+enter' -and $null -eq $_.command
+        }
+
+        if (-not $altEnterUnbound) {
+            # Convert to array if not already
+            if ($TerminalSettings.actions -isnot [System.Array]) {
+                $TerminalSettings.actions = @($TerminalSettings.actions)
+            }
+
+            # Add the unbound keybinding
+            $TerminalSettings.actions = @($TerminalSettings.actions) + @([PSCustomObject]@{
+                command = $null
+                keys    = 'alt+enter'
+            })
+        }
+
         # Save settings with proper formatting and depth
         $TerminalSettings | ConvertTo-Json -Depth 10 | Set-Content $TerminalSettingsPath -Encoding utf8
         Write-Host "  ✓ Windows Terminal font configured" -ForegroundColor Green
