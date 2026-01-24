@@ -107,6 +107,6 @@ Fork this repository and modify:
 
 - [Profile.ps1](Profile.ps1) - Main profile logic
 - [aliases.ps1](aliases.ps1) - Custom functions and aliases
-- [themes/ohmy-posh.omp.json](themes/ohmy-posh.omp.json) - Prompt theme
+- [themes/ohmy-posh.omp.json](themes/ohmy-posh.omp.json) - Prompt theme (try the [visual configurator](https://github.com/jamesmontemagno/ohmyposh-configurator))
 
 All tools gracefully handle missing dependencies with conditional checks.
