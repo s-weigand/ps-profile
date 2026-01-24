@@ -21,6 +21,23 @@ A universal PowerShell profile that works across PowerShell 5.x and 7+ on Window
 iex "& { $(irm 'https://raw.githubusercontent.com/s-weigand/ps-profile/main/install.ps1') }"
 ```
 
+### If `iex` / `irm` is blocked by antivirus
+
+Some antivirus products may block “download + execute” one-liners (and show an error like “This script contains malicious content…”), even for benign scripts.
+
+Regardless of install method (and especially if you’re using a fork), review the scripts before running them so you understand what they will change on your PC.
+
+The recommended workaround is to install locally:
+
+1) Download the repo as a ZIP from GitHub (or `git clone` it)
+2) Review the scripts (especially [install.ps1](install.ps1) and [update.ps1](update.ps1))
+3) Run the installer from the local folder:
+
+```powershell
+cd <path-to-ps-profile>
+./install.ps1
+```
+
 ## Install from your fork
 
 Swap the URL to your fork:
