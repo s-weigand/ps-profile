@@ -76,6 +76,101 @@ foreach ($Tool in $Tools) {
     Write-Host "  ✓ $Tool" -ForegroundColor Green
 }
 
+# Install MesloLGS NF font
+Write-Host "Installing MesloLGS NF font..." -ForegroundColor Yellow
+$FontUrls = @(
+    'https://github.com/romkatv/powerlevel10k-media/raw/master/MesloLGS%20NF%20Regular.ttf',
+    'https://github.com/romkatv/powerlevel10k-media/raw/master/MesloLGS%20NF%20Bold.ttf',
+    'https://github.com/romkatv/powerlevel10k-media/raw/master/MesloLGS%20NF%20Italic.ttf',
+    'https://github.com/romkatv/powerlevel10k-media/raw/master/MesloLGS%20NF%20Bold%20Italic.ttf'
+)
+
+$TempFontsFolder = Join-Path $TempDir 'fonts'
+if (-not (Test-Path $TempFontsFolder)) {
+    New-Item -ItemType Directory -Path $TempFontsFolder -Force | Out-Null
+}
+
+# Download fonts to temp directory
+foreach ($FontUrl in $FontUrls) {
+    $FontName = [System.IO.Path]::GetFileName($FontUrl) -replace '%20', ' '
+    $FontPath = Join-Path $TempFontsFolder $FontName
+
+    try {
+        Invoke-WebRequest -Uri $FontUrl -OutFile $FontPath
+        Write-Host "  ✓ Downloaded $FontName" -ForegroundColor Green
+    } catch {
+        Write-Host "  ✗ Failed to download $FontName" -ForegroundColor Red
+        continue
+    }
+}
+
+# Install fonts using shell interface for proper registration
+$shell = New-Object -ComObject Shell.Application
+$fonts = $shell.Namespace(0x14)  # CSIDL_FONTS
+
+Get-ChildItem $TempFontsFolder -Filter "*.ttf" | ForEach-Object {
+    $FontFile = $_.FullName
+    $FontName = $_.Name
+
+    try {
+        # Check if font is already installed
+        $installedFonts = Get-ChildItem "$env:WINDIR\Fonts" -Filter "*$($_.BaseName)*"
+        if (-not $installedFonts) {
+            $fonts.CopyHere($FontFile)
+            Write-Host "  ✓ Installed $FontName" -ForegroundColor Green
+        } else {
+            Write-Host "  ✓ $FontName (already installed)" -ForegroundColor Gray
+        }
+    } catch {
+        Write-Host "  ✗ Failed to install $FontName" -ForegroundColor Red
+    }
+}
+
+# Configure Windows Terminal font
+Write-Host "Configuring Windows Terminal font..." -ForegroundColor Yellow
+$TerminalSettingsPath = "$env:LOCALAPPDATA\Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState\settings.json"
+if (Test-Path $TerminalSettingsPath) {
+    # Backup the existing settings file
+    $backupPath = "$TerminalSettingsPath.bk"
+    $counter = 1
+    while (Test-Path $backupPath) {
+        $backupPath = "$TerminalSettingsPath.bk$counter"
+        $counter++
+    }
+    Copy-Item $TerminalSettingsPath $backupPath
+    Write-Host "  ✓ Backed up terminal settings to $(Split-Path $backupPath -Leaf)" -ForegroundColor Gray
+
+    try {
+        $TerminalSettings = Get-Content $TerminalSettingsPath -Raw | ConvertFrom-Json
+
+        # Ensure profiles and defaults exist
+        if (-not $TerminalSettings.profiles) {
+            $TerminalSettings | Add-Member -MemberType NoteProperty -Name 'profiles' -Value ([PSCustomObject]@{}) -Force
+        }
+        if (-not $TerminalSettings.profiles.defaults) {
+            $TerminalSettings.profiles | Add-Member -MemberType NoteProperty -Name 'defaults' -Value ([PSCustomObject]@{}) -Force
+        }
+        if (-not $TerminalSettings.profiles.defaults.font) {
+            $TerminalSettings.profiles.defaults | Add-Member -MemberType NoteProperty -Name 'font' -Value ([PSCustomObject]@{ face = 'MesloLGS NF' }) -Force
+        } else {
+            # Font object exists, set or update the face property
+            if ($TerminalSettings.profiles.defaults.font.PSObject.Properties.Name -contains 'face') {
+                $TerminalSettings.profiles.defaults.font.face = 'MesloLGS NF'
+            } else {
+                $TerminalSettings.profiles.defaults.font | Add-Member -MemberType NoteProperty -Name 'face' -Value 'MesloLGS NF' -Force
+            }
+        }
+
+        # Save settings with proper formatting and depth
+        $TerminalSettings | ConvertTo-Json -Depth 10 | Set-Content $TerminalSettingsPath -Encoding utf8
+        Write-Host "  ✓ Windows Terminal font configured" -ForegroundColor Green
+    } catch {
+        Write-Host "  ✗ Failed to configure Windows Terminal font: $_" -ForegroundColor Red
+    }
+} else {
+    Write-Host "  ✓ Windows Terminal settings not found (will use default when available)" -ForegroundColor Gray
+}
+
 # Function to create backup of existing file
 function Backup-ExistingFile {
     param([string]$FilePath)
