@@ -50,6 +50,7 @@ $Tools = @(
     'JanDeDobbeleer.OhMyPosh',
     'ajeetdsouza.zoxide',
     'BurntSushi.ripgrep.MSVC',
+    'sharkdp.bat',
     'Schniz.fnm'
 )
 foreach ($Tool in $Tools) {
