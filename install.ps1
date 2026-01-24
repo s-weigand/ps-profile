@@ -66,7 +66,8 @@ $Tools = @(
     'BurntSushi.ripgrep.MSVC',
     'sharkdp.bat',
     'sharkdp.fd',
-    'Schniz.fnm'
+    'Schniz.fnm',
+    'Dystroy.broot'
 )
 
 # Check if uv is installed, if not add it to tools

@@ -52,7 +52,8 @@ $Tools = @(
     'BurntSushi.ripgrep.MSVC',
     'sharkdp.bat',
     'sharkdp.fd',
-    'Schniz.fnm'
+    'Schniz.fnm',
+    'Dystroy.broot'
 )
 foreach ($Tool in $Tools) {
     winget upgrade $Tool --silent --accept-package-agreements

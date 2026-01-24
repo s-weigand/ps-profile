@@ -25,6 +25,7 @@ iex "& { $(irm 'https://raw.githubusercontent.com/s-weigand/ps-profile/main/inst
 - **[bat](https://github.com/sharkdp/bat)** - A cat clone with syntax highlighting and Git integration
 - **[fd](https://github.com/sharkdp/fd)** - A fast and user-friendly alternative to find
 - **[Fast Node Manager (fnm)](https://github.com/Schniz/fnm)** - Node.js version manager
+- **[broot](https://github.com/Dystroy/broot)** - A better way to navigate directories
 - **[uv](https://github.com/astral-sh/uv)** - Fast Python package installer and resolver
 - **[MesloLGS NF Font](https://github.com/romkatv/powerlevel10k-media)** - Powerline-compatible font with icons (auto-configured for Windows Terminal and VS Code)
 
@@ -90,6 +91,7 @@ winget install BurntSushi.ripgrep.MSVC --silent -s winget
 winget install sharkdp.bat --silent -s winget
 winget install sharkdp.fd --silent -s winget
 winget install Schniz.fnm --silent -s winget
+winget install Dystroy.broot --silent -s winget
 winget install astral-sh.uv --silent -s winget
 
 # Generate ripgrep completions

@@ -17,3 +17,30 @@ function update-ps-profile {
     $UpdateScript = "iex (irm 'https://raw.githubusercontent.com/s-weigand/ps-profile/main/update.ps1')"
     Start-Process powershell -ArgumentList "-NoExit", "-Command", $UpdateScript -Verb RunAs -Wait
 }
+
+
+# br function to handle changing directory
+# This should be created by `broot --install` but isn't see ref:
+# https://github.com/Canop/broot/issues/788
+function br {
+    $cmd_file = New-TemporaryFile
+
+    try {
+        # Use call operator with splatting for proper argument handling
+        $brootArgs = @('--outcmd', $cmd_file.FullName) + $args
+        & broot @brootArgs
+        $exitCode = $LASTEXITCODE
+    } catch {
+        $exitCode = 1
+    }
+
+    If ($exitCode -eq 0) {
+        $cmd = Get-Content $cmd_file
+        Remove-Item $cmd_file
+        If ($cmd -ne $null) { Invoke-Expression -Command $cmd }
+    } Else {
+        Remove-Item $cmd_file
+        Write-Host "`n" # Newline to tidy up broot unexpected termination
+        Write-Error "broot.exe exited with error code $exitCode"
+    }
+}
