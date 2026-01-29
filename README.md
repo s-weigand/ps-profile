@@ -1,17 +1,6 @@
-# **What happens if I install it?**
-
-- **Installs & configures:** Running the installer copies this profile and runs `install.ps1` to set an execution policy, install key PowerShell modules (PSReadLine, Terminal-Icons) and common CLI tools via `winget` (Oh-My-Posh, zoxide, ripgrep, bat, fd, fnm, broot, uv).
-- **Sets up your shell:** Your `Profile.ps1` is enabled — it configures `PSReadLine` keybindings, an Oh-My-Posh prompt with git/language indicators, loads aliases from `aliases.ps1`, and sources ripgrep completions if present.
-- **Fonts & visuals:** The installer attempts to install/configure the MesloLGS NF font for Windows Terminal and VS Code so icons and glyphs render correctly.
-- **Safe defaults:** Integrations are conditional — missing tools are skipped and the profile avoids hard failures.
-- **After install:** Reopen PowerShell (or source your profile) to see the prompt, keybindings, and aliases. Update later with `update-ps-profile` or the `update.ps1` script.
-- **Security:** Inspect `install.ps1` before running; the installer executes system installs and may change your execution policy.
-
 # PowerShell Profile
 
 ⚠️ **SECURITY NOTICE**: Review [install.ps1](install.ps1) thoroughly before running. Fork this repository and modify for your needs.
-
-Credit: this profile is based on (and defaults to updating from) the upstream repo: https://github.com/s-weigand/ps-profile
 
 A universal PowerShell profile that works across PowerShell 5.x and 7+ on Windows, with enhanced command-line tools and productivity features.
 
@@ -21,32 +10,15 @@ A universal PowerShell profile that works across PowerShell 5.x and 7+ on Window
 iex "& { $(irm 'https://raw.githubusercontent.com/s-weigand/ps-profile/main/install.ps1') }"
 ```
 
-### If `iex` / `irm` is blocked by antivirus
-
-Some antivirus products may block “download + execute” one-liners (and show an error like “This script contains malicious content…”), even for benign scripts.
-
-Regardless of install method (and especially if you’re using a fork), review the scripts before running them so you understand what they will change on your PC.
-
-The recommended workaround is to install locally:
-
-1) Download the repo as a ZIP from GitHub (or `git clone` it)
-2) Review the scripts (especially [install.ps1](install.ps1) and [update.ps1](update.ps1))
-3) Run the installer from the local folder:
+## Install from your fork
 
 ```powershell
-cd <path-to-ps-profile>
+git clone https://github.com/your-user/ps-profile.git
+cd ps-profile
 ./install.ps1
 ```
 
-## Install from your fork
-
-Swap the URL to your fork:
-
-```powershell
-iex "& { $(irm 'https://raw.githubusercontent.com/<your-user-or-org>/ps-profile/main/install.ps1') }"
-```
-
-The installer writes a small config file so `update-ps-profile` keeps updating from your fork automatically (`~\Documents\PowerShell\ps-profile.repo.ps1` and `~\Documents\WindowsPowerShell\ps-profile.repo.ps1`).
+The installer writes a config file so `update-ps-profile` updates from your fork automatically.
 
 ## Tools Included
 
@@ -145,9 +117,7 @@ rg --generate complete-powershell | Out-File ~\Documents\WindowsPowerShell\compl
 iex "& { $(irm 'https://raw.githubusercontent.com/s-weigand/ps-profile/main/update.ps1') }"
 ```
 
-If you installed from a fork, use `update-ps-profile` (from [aliases.ps1](aliases.ps1)). It reads your persisted repo config and updates from your fork automatically.
-
-When updating from a fork, the updater will also print a friendly note if the upstream repo has newer changes on `main` so you can decide whether to merge/rebase.
+Or use the `update-ps-profile` alias (updates from your configured repo).
 
 ## Customization
 

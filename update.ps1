@@ -8,95 +8,46 @@
 param(
     [string]$RepoOwner,
     [string]$RepoName,
-    [string]$Branch,
-    # Optional override for raw base URL (advanced)
-    [string]$RepoBase
+    [string]$Branch
 )
 
 function Get-RepoBase {
     param(
-        [Parameter(Mandatory = $true)][string]$Owner,
-        [Parameter(Mandatory = $true)][string]$Name,
-        [Parameter(Mandatory = $true)][string]$Branch
+        [Parameter(Mandatory)][string]$Owner,
+        [Parameter(Mandatory)][string]$Name,
+        [Parameter(Mandatory)][string]$Branch
     )
-
-    $base = "https://raw.githubusercontent.com/$Owner/$Name/$Branch"
-    return $base.TrimEnd('/')
+    $ref = $Branch.Trim('/')
+    if ($ref -like '*/*' -and -not $ref.StartsWith('refs/')) { $ref = "refs/heads/$ref" }
+    return "https://raw.githubusercontent.com/$Owner/$Name/$ref"
 }
 
 $UpstreamOwner = 's-weigand'
 $UpstreamName = 'ps-profile'
 $UpstreamBranch = 'main'
-$UpstreamBase = 'https://raw.githubusercontent.com/s-weigand/ps-profile/main'
 
 # Load persisted repo config if present (install.ps1 writes it)
-try {
-    $scriptDir = $null
-    if ($PSCommandPath) {
-        $scriptDir = Split-Path -Parent $PSCommandPath
-    } elseif ($MyInvocation.PSCommandPath) {
-        $scriptDir = Split-Path -Parent $MyInvocation.PSCommandPath
+$repoConfigPaths = @(
+    (Join-Path $HOME 'Documents\PowerShell\ps-profile.repo.ps1'),
+    (Join-Path $HOME 'Documents\WindowsPowerShell\ps-profile.repo.ps1')
+)
+foreach ($configPath in $repoConfigPaths) {
+    if (Test-Path $configPath) {
+        try { . $configPath; break } catch { }
     }
-
-    $repoConfigCandidates = @(
-        (if ($scriptDir) { Join-Path $scriptDir 'ps-profile.repo.ps1' }),
-        (Join-Path $HOME 'Documents\PowerShell\ps-profile.repo.ps1'),
-        (Join-Path $HOME 'Documents\WindowsPowerShell\ps-profile.repo.ps1')
-    ) | Where-Object { $_ -and (Test-Path $_) } | Select-Object -Unique
-
-    foreach ($candidate in $repoConfigCandidates) {
-        . $candidate
-        break
-    }
-} catch {
-    # Non-fatal: updater can still run with defaults/params
 }
 
-# Fill missing params from config (if loaded), otherwise upstream defaults
-if ([string]::IsNullOrWhiteSpace($RepoOwner) -and $Global:PSProfileRepoOwner) { $RepoOwner = $Global:PSProfileRepoOwner }
-if ([string]::IsNullOrWhiteSpace($RepoName) -and $Global:PSProfileRepoName) { $RepoName = $Global:PSProfileRepoName }
-if ([string]::IsNullOrWhiteSpace($Branch) -and $Global:PSProfileRepoBranch) { $Branch = $Global:PSProfileRepoBranch }
-if ([string]::IsNullOrWhiteSpace($RepoBase) -and $Global:PSProfileRepoBase) { $RepoBase = $Global:PSProfileRepoBase }
+# Use params > config > upstream defaults
+if ([string]::IsNullOrWhiteSpace($RepoOwner)) { $RepoOwner = if ($Global:PSProfileRepoOwner) { $Global:PSProfileRepoOwner } else { $UpstreamOwner } }
+if ([string]::IsNullOrWhiteSpace($RepoName)) { $RepoName = if ($Global:PSProfileRepoName) { $Global:PSProfileRepoName } else { $UpstreamName } }
+if ([string]::IsNullOrWhiteSpace($Branch)) { $Branch = if ($Global:PSProfileRepoBranch) { $Global:PSProfileRepoBranch } else { $UpstreamBranch } }
 
-if ([string]::IsNullOrWhiteSpace($RepoOwner)) { $RepoOwner = $UpstreamOwner }
-if ([string]::IsNullOrWhiteSpace($RepoName)) { $RepoName = $UpstreamName }
-if ([string]::IsNullOrWhiteSpace($Branch)) { $Branch = $UpstreamBranch }
-
-if ([string]::IsNullOrWhiteSpace($RepoBase)) {
-    $RepoBase = Get-RepoBase -Owner $RepoOwner -Name $RepoName -Branch $Branch
-} else {
-    $RepoBase = $RepoBase.TrimEnd('/')
-}
+$RepoBase = if ($Global:PSProfileRepoBase) { $Global:PSProfileRepoBase } else { Get-RepoBase -Owner $RepoOwner -Name $RepoName -Branch $Branch }
 
 Write-Host "Updating PowerShell Profile..." -ForegroundColor Cyan
-Write-Host "Upstream:  https://github.com/$UpstreamOwner/$UpstreamName" -ForegroundColor Gray
-Write-Host "Updating:  https://github.com/$RepoOwner/$RepoName" -ForegroundColor Gray
+Write-Host "Repository: https://github.com/$RepoOwner/$RepoName" -ForegroundColor Gray
+
 $TempDir = Join-Path $env:TEMP 'ps-profile-update'
-
-function Get-LatestCommitDate {
-    param(
-        [Parameter(Mandatory = $true)][string]$Owner,
-        [Parameter(Mandatory = $true)][string]$Name,
-        [Parameter(Mandatory = $true)][string]$Branch
-    )
-
-    try {
-        $headers = @{ 'User-Agent' = 'ps-profile-updater' }
-        $commit = Invoke-RestMethod -Uri "https://api.github.com/repos/$Owner/$Name/commits/$Branch" -Headers $headers -ErrorAction Stop
-        return [datetime]$commit.commit.committer.date
-    } catch {
-        return $null
-    }
-}
-
-# Friendly notice if upstream is ahead (non-blocking)
-if ("$RepoOwner/$RepoName" -ne "$UpstreamOwner/$UpstreamName") {
-    $upstreamDate = Get-LatestCommitDate -Owner $UpstreamOwner -Name $UpstreamName -Branch $UpstreamBranch
-    $currentDate = Get-LatestCommitDate -Owner $RepoOwner -Name $RepoName -Branch $Branch
-    if ($upstreamDate -and $currentDate -and ($upstreamDate -gt $currentDate)) {
-        Write-Host "Note: Upstream ($UpstreamOwner/$UpstreamName) has newer changes on '$UpstreamBranch' ($upstreamDate). Consider merging/rebasing your fork." -ForegroundColor Yellow
-    }
-}
 
 # Create temporary directory
 if (Test-Path $TempDir) {
@@ -196,24 +147,24 @@ if (Test-Path $TerminalSettingsPath) {
         if (-not $TerminalSettings.actions) {
             $TerminalSettings | Add-Member -MemberType NoteProperty -Name 'actions' -Value @() -Force
         }
-        
+
         # Check if Alt+Enter is already unbound
-        $altEnterUnbound = $TerminalSettings.actions | Where-Object { 
+        $altEnterUnbound = $TerminalSettings.actions | Where-Object {
             $_.keys -eq 'alt+enter' -and $null -eq $_.command
         }
-        
+
         if (-not $altEnterUnbound) {
             # Convert to array if not already
             if ($TerminalSettings.actions -isnot [System.Array]) {
                 $TerminalSettings.actions = @($TerminalSettings.actions)
             }
-            
+
             # Add the unbound keybinding
             $TerminalSettings.actions = @($TerminalSettings.actions) + @([PSCustomObject]@{
                 command = $null
                 keys    = 'alt+enter'
             })
-            
+
             # Save settings with proper formatting and depth
             $TerminalSettings | ConvertTo-Json -Depth 10 | Set-Content $TerminalSettingsPath -Encoding utf8
             Write-Host "  ✓ Windows Terminal Alt+Enter keybinding disabled" -ForegroundColor Green
