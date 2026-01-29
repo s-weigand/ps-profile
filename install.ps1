@@ -27,15 +27,16 @@ param(
 )
 
 function Try-GetRepoFromInvocationLine {
+    param([string]$InvocationLine)
+    
     try {
-        $line = $MyInvocation.Line
-        Write-Host "Debug: Invocation line: $line" -ForegroundColor DarkGray
-        if ([string]::IsNullOrWhiteSpace($line)) {
+        Write-Host "Debug: Invocation line: $InvocationLine" -ForegroundColor DarkGray
+        if ([string]::IsNullOrWhiteSpace($InvocationLine)) {
             return $null
         }
 
         $m = [regex]::Match(
-            $line,
+            $InvocationLine,
             'raw\.githubusercontent\.com/(?<owner>[^/''"\s]+)/(?<repo>[^/''"\s]+)/(?<branch>[^/''"\s]+)/install\.ps1',
             [System.Text.RegularExpressions.RegexOptions]::IgnoreCase
         )
@@ -55,7 +56,7 @@ function Try-GetRepoFromInvocationLine {
     }
 }
 
-$inferredRepo = Try-GetRepoFromInvocationLine
+$inferredRepo = Try-GetRepoFromInvocationLine -InvocationLine $MyInvocation.Line
 if ($inferredRepo) {
     if (-not $PSBoundParameters.ContainsKey('RepoOwner')) { $RepoOwner = $inferredRepo.Owner }
     if (-not $PSBoundParameters.ContainsKey('RepoName')) { $RepoName = $inferredRepo.Repo }
