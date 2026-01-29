@@ -7,7 +7,9 @@
 
 # PSReadLine - Enhanced command line editing
 # Install: Install-Module -Name PSReadLine -Scope CurrentUser -Force
-Import-Module PSReadLine
+if (-not (Get-Module -Name PSReadLine)) {
+    Import-Module PSReadLine # -ErrorAction SilentlyContinue
+}
 
 Set-PSReadLineKeyHandler -Key Ctrl+RightArrow -Function ShellForwardWord
 Set-PSReadLineKeyHandler -Key Ctrl+LeftArrow -Function ShellBackwardWord
