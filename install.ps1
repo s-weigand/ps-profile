@@ -29,6 +29,7 @@ param(
 function Try-GetRepoFromInvocationLine {
     try {
         $line = $MyInvocation.Line
+        Write-Host "Debug: Invocation line: $line" -ForegroundColor DarkGray
         if ([string]::IsNullOrWhiteSpace($line)) {
             return $null
         }
@@ -48,7 +49,8 @@ function Try-GetRepoFromInvocationLine {
             Repo   = $m.Groups['repo'].Value
             Branch = $m.Groups['branch'].Value
         }
-    } catch {
+    }
+    catch {
         return $null
     }
 }
@@ -72,7 +74,8 @@ Type YES to continue
     $confirmation = $null
     try {
         $confirmation = Read-Host $message
-    } catch {
+    }
+    catch {
         throw "Refusing to run non-interactively from a fork."
     }
 
@@ -95,7 +98,8 @@ function Get-RepoBase {
 
 if ([string]::IsNullOrWhiteSpace($RepoBase)) {
     $RepoBase = Get-RepoBase -Owner $RepoOwner -Name $RepoName -Branch $Branch
-} else {
+}
+else {
     $RepoBase = $RepoBase.TrimEnd('/')
 }
 
@@ -187,7 +191,8 @@ foreach ($FontUrl in $FontUrls) {
     try {
         Invoke-WebRequest -Uri $FontUrl -OutFile $FontPath
         Write-Host "  ✓ Downloaded $FontName" -ForegroundColor Green
-    } catch {
+    }
+    catch {
         Write-Host "  ✗ Failed to download $FontName" -ForegroundColor Red
         continue
     }
@@ -207,13 +212,15 @@ Get-ChildItem $TempFontsFolder -Filter "*.ttf" | ForEach-Object {
     try {
         if ((Test-Path $systemFontPath) -or (Test-Path $userFontPath)) {
             Write-Host "  ✓ $FontName (already installed)" -ForegroundColor Gray
-        } else {
+        }
+        else {
             # FOF_SILENT (0x4) + FOF_NOCONFIRMATION (0x10) + FOF_NOERRORUI (0x400)
             $copyFlags = 0x0414
             $fonts.CopyHere($FontFile, $copyFlags)
             Write-Host "  ✓ Installed $FontName" -ForegroundColor Green
         }
-    } catch {
+    }
+    catch {
         Write-Host "  ✗ Failed to install $FontName" -ForegroundColor Red
     }
 }
@@ -244,11 +251,13 @@ if (Test-Path $TerminalSettingsPath) {
         }
         if (-not $TerminalSettings.profiles.defaults.font) {
             $TerminalSettings.profiles.defaults | Add-Member -MemberType NoteProperty -Name 'font' -Value ([PSCustomObject]@{ face = 'MesloLGS NF' }) -Force
-        } else {
+        }
+        else {
             # Font object exists, set or update the face property
             if ($TerminalSettings.profiles.defaults.font.PSObject.Properties.Name -contains 'face') {
                 $TerminalSettings.profiles.defaults.font.face = 'MesloLGS NF'
-            } else {
+            }
+            else {
                 $TerminalSettings.profiles.defaults.font | Add-Member -MemberType NoteProperty -Name 'face' -Value 'MesloLGS NF' -Force
             }
         }
@@ -271,18 +280,20 @@ if (Test-Path $TerminalSettingsPath) {
 
             # Add the unbound keybinding
             $TerminalSettings.actions = @($TerminalSettings.actions) + @([PSCustomObject]@{
-                command = $null
-                keys    = 'alt+enter'
-            })
+                    command = $null
+                    keys    = 'alt+enter'
+                })
         }
 
         # Save settings with proper formatting and depth
         $TerminalSettings | ConvertTo-Json -Depth 10 | Set-Content $TerminalSettingsPath -Encoding utf8
         Write-Host "  ✓ Windows Terminal font configured" -ForegroundColor Green
-    } catch {
+    }
+    catch {
         Write-Host "  ✗ Failed to configure Windows Terminal font: $_" -ForegroundColor Red
     }
-} else {
+}
+else {
     Write-Host "  ✓ Windows Terminal settings not found (will use default when available)" -ForegroundColor Gray
 }
 
@@ -313,17 +324,20 @@ if (Test-Path $VSCodeSettingsPath) {
         # Set the integrated terminal font
         if ($VSCodeSettings.PSObject.Properties.Name -contains 'terminal.integrated.fontFamily') {
             $VSCodeSettings.'terminal.integrated.fontFamily' = 'MesloLGS NF'
-        } else {
+        }
+        else {
             $VSCodeSettings | Add-Member -MemberType NoteProperty -Name 'terminal.integrated.fontFamily' -Value 'MesloLGS NF' -Force
         }
 
         # Save settings with proper formatting and depth
         $VSCodeSettings | ConvertTo-Json -Depth 10 | Set-Content $VSCodeSettingsPath -Encoding utf8
         Write-Host "  ✓ VS Code integrated terminal font configured" -ForegroundColor Green
-    } catch {
+    }
+    catch {
         Write-Host "  ✗ Failed to configure VS Code font: $_" -ForegroundColor Red
     }
-} else {
+}
+else {
     # Create new settings file with font configuration
     try {
         $VSCodeSettings = [PSCustomObject]@{
@@ -331,7 +345,8 @@ if (Test-Path $VSCodeSettingsPath) {
         }
         $VSCodeSettings | ConvertTo-Json -Depth 10 | Set-Content $VSCodeSettingsPath -Encoding utf8
         Write-Host "  ✓ Created VS Code settings with integrated terminal font configured" -ForegroundColor Green
-    } catch {
+    }
+    catch {
         Write-Host "  ✗ Failed to create VS Code settings: $_" -ForegroundColor Red
     }
 }
@@ -412,7 +427,8 @@ $RepoConfigContent = @"
     try {
         $RepoConfigContent | Set-Content -Path $_ -Encoding utf8 -Force
         Write-Host "  ✓ Repo config saved: $($_)" -ForegroundColor Green
-    } catch {
+    }
+    catch {
         Write-Host "  ✗ Failed to write repo config: $($_)" -ForegroundColor Red
     }
 }
