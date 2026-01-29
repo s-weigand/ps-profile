@@ -18,7 +18,23 @@ cd ps-profile
 ./install.ps1
 ```
 
-The installer writes a config file so `update-ps-profile` updates from your fork automatically.
+The installer auto-detects owner/repo/branch from the local Git clone and writes a config file so `update-ps-profile` updates from your fork automatically.
+
+### Override options
+
+You can override the detected values with parameters or environment variables:
+
+```powershell
+# Via parameters
+./install.ps1 -RepoOwner your-user -RepoName ps-profile -Branch develop
+
+# Via environment variables
+$env:PS_PROFILE_OWNER = 'your-user'
+$env:PS_PROFILE_BRANCH = 'develop'
+./install.ps1
+```
+
+Priority: explicit parameter > environment variable > git clone > upstream default.
 
 ## Tools Included
 

@@ -31,7 +31,8 @@ function br {
         $brootArgs = @('--outcmd', $cmd_file.FullName) + $args
         & broot @brootArgs
         $exitCode = $LASTEXITCODE
-    } catch {
+    }
+    catch {
         $exitCode = 1
     }
 
@@ -39,7 +40,8 @@ function br {
         $cmd = Get-Content $cmd_file
         Remove-Item $cmd_file
         If ($cmd -ne $null) { Invoke-Expression -Command $cmd }
-    } Else {
+    }
+    Else {
         Remove-Item $cmd_file
         Write-Host "`n" # Newline to tidy up broot unexpected termination
         Write-Error "broot.exe exited with error code $exitCode"

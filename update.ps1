@@ -58,8 +58,8 @@ New-Item -ItemType Directory -Path $TempDir -Force | Out-Null
 # Download latest profile files
 Write-Host "Downloading latest profile files..." -ForegroundColor Yellow
 $FilesToDownload = @{
-    'Profile.ps1' = "$RepoBase/Profile.ps1"
-    'aliases.ps1' = "$RepoBase/aliases.ps1"
+    'Profile.ps1'               = "$RepoBase/Profile.ps1"
+    'aliases.ps1'               = "$RepoBase/aliases.ps1"
     'themes/ohmy-posh.omp.json' = "$RepoBase/themes/ohmy-posh.omp.json"
 }
 
@@ -161,20 +161,23 @@ if (Test-Path $TerminalSettingsPath) {
 
             # Add the unbound keybinding
             $TerminalSettings.actions = @($TerminalSettings.actions) + @([PSCustomObject]@{
-                command = $null
-                keys    = 'alt+enter'
-            })
+                    command = $null
+                    keys    = 'alt+enter'
+                })
 
             # Save settings with proper formatting and depth
             $TerminalSettings | ConvertTo-Json -Depth 10 | Set-Content $TerminalSettingsPath -Encoding utf8
             Write-Host "  ✓ Windows Terminal Alt+Enter keybinding disabled" -ForegroundColor Green
-        } else {
+        }
+        else {
             Write-Host "  ✓ Windows Terminal Alt+Enter keybinding already disabled" -ForegroundColor Gray
         }
-    } catch {
+    }
+    catch {
         Write-Host "  ✗ Failed to configure Windows Terminal keybindings: $_" -ForegroundColor Red
     }
-} else {
+}
+else {
     Write-Host "  ✓ Windows Terminal settings not found" -ForegroundColor Gray
 }
 
