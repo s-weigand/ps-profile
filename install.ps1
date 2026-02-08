@@ -26,64 +26,26 @@ $UpstreamOwner = 's-weigand'
 $UpstreamName = 'ps-profile'
 $UpstreamBranch = 'main'
 
-# Try to infer owner/repo/branch from local Git clone (for fork-based installs)
-function Try-GetRepoFromGit {
-    # Bail out early if git is not installed
-    if (-not (Get-Command git -ErrorAction SilentlyContinue)) { return $null }
-
-    # Only attempt if we're in a git worktree
-    try {
-        $gitDir = git rev-parse --git-dir 2>$null
-        if (-not $gitDir) { return $null }
-    }
-    catch { return $null }
-
-    $result = @{}
-
-    # Parse remote origin URL. Supported formats:
-    #   https://github.com/owner/repo.name.git
-    #   http://github.com/owner/repo
-    #   git@github.com:owner/repo.name
-    #   ssh://git@github.com/owner/repo.git
-    try {
-        $remoteUrl = git config --get remote.origin.url 2>$null
-        if ($remoteUrl -match '^(?:https?://|ssh://git@|git@)github\.com[:/](?<owner>[^/]+)/(?<repo>.+?)(?:\.git)?/?$') {
-            $result.Owner = $Matches['owner'].Trim()
-            $result.Name = $Matches['repo'].Trim().TrimEnd('/') -replace '\.git$'
-
-            # Only infer branch if we successfully parsed origin (owner/repo/branch must be coherent)
-            try {
-                $branchName = git symbolic-ref --short HEAD 2>$null
-                if ($branchName) {
-                    $result.Branch = $branchName.Trim()
-                }
-            }
-            catch { }
-        }
-    }
-    catch { }
-
-    if ($result.Count -gt 0) { return $result }
-    return $null
-}
-
-$gitInfo = Try-GetRepoFromGit
-
-# Priority: explicit param > env var > git > upstream default
+# Priority: explicit param > env var > upstream default (no git/PWD scanning)
 if ([string]::IsNullOrWhiteSpace($RepoOwner)) {
-    $RepoOwner = if ($env:PS_PROFILE_OWNER) { $env:PS_PROFILE_OWNER }
-    elseif ($gitInfo.Owner) { $gitInfo.Owner }
-    else { $UpstreamOwner }
+    $RepoOwner = if ($env:PS_PROFILE_OWNER) { $env:PS_PROFILE_OWNER } else { $UpstreamOwner }
 }
 if ([string]::IsNullOrWhiteSpace($RepoName)) {
-    $RepoName = if ($env:PS_PROFILE_REPO) { $env:PS_PROFILE_REPO }
-    elseif ($gitInfo.Name) { $gitInfo.Name }
-    else { $UpstreamName }
+    $RepoName = if ($env:PS_PROFILE_REPO) { $env:PS_PROFILE_REPO } else { $UpstreamName }
 }
 if ([string]::IsNullOrWhiteSpace($Branch)) {
-    $Branch = if ($env:PS_PROFILE_BRANCH) { $env:PS_PROFILE_BRANCH }
-    elseif ($gitInfo.Branch) { $gitInfo.Branch }
-    else { $UpstreamBranch }
+    $Branch = if ($env:PS_PROFILE_BRANCH) { $env:PS_PROFILE_BRANCH } else { $UpstreamBranch }
+}
+
+# Interactive confirmation for fork installs
+if ($RepoOwner -ne $UpstreamOwner -or $RepoName -ne $UpstreamName -or $Branch -ne $UpstreamBranch) {
+    Write-Host "`nFork detected — confirm repository settings:" -ForegroundColor Yellow
+    $inputOwner = Read-Host "  Repository owner [$RepoOwner]"
+    if (-not [string]::IsNullOrWhiteSpace($inputOwner)) { $RepoOwner = $inputOwner.Trim() }
+    $inputName = Read-Host "  Repository name  [$RepoName]"
+    if (-not [string]::IsNullOrWhiteSpace($inputName)) { $RepoName = $inputName.Trim() }
+    $inputBranch = Read-Host "  Branch           [$Branch]"
+    if (-not [string]::IsNullOrWhiteSpace($inputBranch)) { $Branch = $inputBranch.Trim() }
 }
 
 function Get-RepoBase {
@@ -122,10 +84,8 @@ Write-Host "Repository: https://github.com/$RepoOwner/$RepoName ($Branch)" -Fore
 
 # Show detection source for transparency
 $sourceInfo = @()
-if ($gitInfo.Owner -and $RepoOwner -eq $gitInfo.Owner) { $sourceInfo += "owner from git" }
-elseif ($env:PS_PROFILE_OWNER -and $RepoOwner -eq $env:PS_PROFILE_OWNER) { $sourceInfo += "owner from env" }
-if ($gitInfo.Branch -and $Branch -eq $gitInfo.Branch) { $sourceInfo += "branch from git" }
-elseif ($env:PS_PROFILE_BRANCH -and $Branch -eq $env:PS_PROFILE_BRANCH) { $sourceInfo += "branch from env" }
+if ($env:PS_PROFILE_OWNER -and $RepoOwner -eq $env:PS_PROFILE_OWNER) { $sourceInfo += "owner from env" }
+if ($env:PS_PROFILE_BRANCH -and $Branch -eq $env:PS_PROFILE_BRANCH) { $sourceInfo += "branch from env" }
 if ($sourceInfo.Count -gt 0) {
     Write-Host "Detected: $($sourceInfo -join ', ')" -ForegroundColor Gray
 }
