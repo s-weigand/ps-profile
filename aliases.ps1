@@ -12,11 +12,11 @@ function .. {
     Set-Location ..
 }
 
-# Update PowerShell profile as admin
+# Update PowerShell profile
 function update-ps-profile {
     $repoBase = if ($Global:PSProfileRepoBase) { "$Global:PSProfileRepoBase".TrimEnd('/') } else { 'https://raw.githubusercontent.com/s-weigand/ps-profile/main' }
     $shell = if (Get-Command pwsh -ErrorAction SilentlyContinue) { 'pwsh' } else { 'powershell' }
-    Start-Process $shell -ArgumentList "-NoExit", "-Command", "iex (irm '$repoBase/update.ps1')" -Verb RunAs -Wait
+    Start-Process $shell -ArgumentList "-NoExit", "-Command", "iex (irm '$repoBase/update.ps1')" -Wait
 }
 
 
