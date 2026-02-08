@@ -108,6 +108,12 @@ if (Test-Path $RgCompletions) {
     . $RgCompletions
 }
 
+# Load persisted ps-profile repo settings written by install.ps1.
+$RepoConfigPath = Join-Path $PSScriptRoot 'ps-profile.repo.ps1'
+if (Test-Path $RepoConfigPath) {
+    . $RepoConfigPath
+}
+
 # Load aliases and functions
 $AliasesPath = Join-Path $PSScriptRoot 'aliases.ps1'
 if (Test-Path $AliasesPath) {

@@ -15,15 +15,17 @@ function .. {
 # Update PowerShell profile
 function update-ps-profile {
     param([switch]$AsAdmin)
+
     $repoBase = if ($Global:PSProfileRepoBase) { "$Global:PSProfileRepoBase".TrimEnd('/') } else { 'https://raw.githubusercontent.com/s-weigand/ps-profile/main' }
     $shell = if (Get-Command pwsh -ErrorAction SilentlyContinue) { 'pwsh' } else { 'powershell' }
     $updateUrl = "$repoBase/update.ps1"
-    # Escape single quotes for safe use inside a single-quoted PowerShell string
-    $escapedUpdateUrl = $updateUrl -replace "'", "''"
-    $scriptCommand = "iex (irm '$escapedUpdateUrl')"
-    $startArgs = @{ FilePath = $shell; ArgumentList = @("-NoExit", "-Command", $scriptCommand); Wait = $true }
-    if ($AsAdmin) { $startArgs.Verb = 'RunAs' }
-    Start-Process @startArgs
+    $scriptCommand = "iex (irm '$updateUrl')"
+
+    if ($AsAdmin) {
+        Start-Process -FilePath $shell -ArgumentList @("-NoExit", "-Command", $scriptCommand) -Verb RunAs -Wait
+    } else {
+        Start-Process -FilePath $shell -ArgumentList @("-NoExit", "-Command", $scriptCommand) -Wait
+    }
 }
 
 
