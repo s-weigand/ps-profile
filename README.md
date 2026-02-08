@@ -13,18 +13,6 @@ iex "& { $(irm 'https://raw.githubusercontent.com/s-weigand/ps-profile/main/inst
 ## Install from your fork
 
 ```powershell
-git clone https://github.com/your-user/ps-profile.git
-cd ps-profile
-./install.ps1
-```
-
-The installer auto-detects owner/repo/branch from the local Git clone and writes a config file so `update-ps-profile` updates from your fork automatically.
-
-### Override options
-
-You can override the detected values with parameters or environment variables:
-
-```powershell
 # Via parameters
 ./install.ps1 -RepoOwner your-user -RepoName ps-profile -Branch develop
 
@@ -34,7 +22,9 @@ $env:PS_PROFILE_BRANCH = 'develop'
 ./install.ps1
 ```
 
-Priority: explicit parameter > environment variable > git clone > upstream default.
+When installing from a fork, the installer writes a config file so `update-ps-profile` updates from your fork automatically.
+
+Priority: explicit parameter > environment variable > upstream default.
 
 ## Tools Included
 
