@@ -26,6 +26,15 @@ When installing from a fork, the installer writes a config file so `update-ps-pr
 
 Priority: explicit parameter > environment variable > upstream default.
 
+### Git prompt style
+
+During installation you can choose between two git prompt modes:
+
+- **Full status** (default) — shows branch, dirty/staged files, ahead/behind, stash count. May be slow in large repos or with antivirus scanning.
+- **Fast** — shows branch name only. Recommended if you experience prompt lag.
+
+Your choice is persisted and respected by `update-ps-profile`. To switch later, re-run the installer.
+
 ## Tools Included
 
 ### PowerShell Modules

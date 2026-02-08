@@ -57,10 +57,13 @@ New-Item -ItemType Directory -Path $TempDir -Force | Out-Null
 
 # Download latest profile files
 Write-Host "Downloading latest profile files..." -ForegroundColor Yellow
+$GitPromptStyle = if ($Global:PSProfileGitPromptStyle) { $Global:PSProfileGitPromptStyle } else { 'full' }
+
 $FilesToDownload = @{
     'Profile.ps1' = "$RepoBase/Profile.ps1"
     'aliases.ps1' = "$RepoBase/aliases.ps1"
     'themes/ohmy-posh.omp.json' = "$RepoBase/themes/ohmy-posh.omp.json"
+    'themes/ohmy-posh-fast.omp.json' = "$RepoBase/themes/ohmy-posh-fast.omp.json"
 }
 
 foreach ($File in $FilesToDownload.GetEnumerator()) {
@@ -112,8 +115,9 @@ $PS5ProfileDir = "$HOME\Documents\WindowsPowerShell"
 Copy-Item (Join-Path $TempDir 'Profile.ps1') "$PS5ProfileDir\Profile.ps1" -Force
 Copy-Item (Join-Path $TempDir 'aliases.ps1') "$PS5ProfileDir\aliases.ps1" -Force
 
-# Update theme
-Copy-Item (Join-Path $TempDir 'themes\ohmy-posh.omp.json') "$HOME\themes\ohmy-posh.omp.json" -Force
+# Update theme (respects git prompt style preference from install)
+$ThemeSource = if ($GitPromptStyle -eq 'fast') { 'themes/ohmy-posh-fast.omp.json' } else { 'themes/ohmy-posh.omp.json' }
+Copy-Item (Join-Path $TempDir $ThemeSource) "$HOME\themes\ohmy-posh.omp.json" -Force
 
 Write-Host "  ✓ Profile files updated" -ForegroundColor Green
 
