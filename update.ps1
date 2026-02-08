@@ -23,11 +23,13 @@ foreach ($configPath in $repoConfigPaths) {
 }
 
 # Use params > config > upstream defaults
+$paramsProvided = $PSBoundParameters.ContainsKey('RepoOwner') -or $PSBoundParameters.ContainsKey('RepoName') -or $PSBoundParameters.ContainsKey('Branch')
 if ([string]::IsNullOrWhiteSpace($RepoOwner)) { $RepoOwner = if ($Global:PSProfileRepoOwner) { $Global:PSProfileRepoOwner } else { 's-weigand' } }
 if ([string]::IsNullOrWhiteSpace($RepoName)) { $RepoName = if ($Global:PSProfileRepoName) { $Global:PSProfileRepoName } else { 'ps-profile' } }
 if ([string]::IsNullOrWhiteSpace($Branch)) { $Branch = if ($Global:PSProfileRepoBranch) { $Global:PSProfileRepoBranch } else { 'main' } }
 
-if ($Global:PSProfileRepoBase) {
+# Only use persisted RepoBase when no repo params were explicitly provided
+if (-not $paramsProvided -and $Global:PSProfileRepoBase) {
     $RepoBase = $Global:PSProfileRepoBase
 } else {
     $ref = $Branch.Trim('/')
@@ -75,9 +77,20 @@ if ($GitPromptStyle -eq 'fast') {
         Invoke-RestMethod "$RepoBase/themes/ohmy-posh-fast.omp.json" -OutFile $FastThemePath
         Write-Host "  ✓ themes/ohmy-posh-fast.omp.json" -ForegroundColor Green
     } catch {
-        # Fast theme not available on this branch — fall back to full
-        Write-Host "  ⚠ Fast theme not available, using full" -ForegroundColor Yellow
+        # Fast theme not available on this branch — fall back to full and persist the change
+        Write-Host "  ⚠ Fast theme not available, falling back to full" -ForegroundColor Yellow
         $GitPromptStyle = 'full'
+        $Global:PSProfileGitPromptStyle = 'full'
+        foreach ($configPath in $repoConfigPaths) {
+            if (Test-Path $configPath) {
+                try {
+                    (Get-Content $configPath -Raw) -replace "PSProfileGitPromptStyle\s*=\s*'fast'", "PSProfileGitPromptStyle = 'full'" |
+                        Set-Content $configPath -Encoding utf8 -Force
+                } catch {
+                    Write-Warning "Failed to update git prompt style in '$configPath': $($_.Exception.Message)"
+                }
+            }
+        }
     }
 }
 

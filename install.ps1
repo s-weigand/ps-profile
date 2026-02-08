@@ -19,7 +19,8 @@
 param(
     [string]$RepoOwner,
     [string]$RepoName,
-    [string]$Branch
+    [string]$Branch,
+    [switch]$Force
 )
 
 $UpstreamOwner = 's-weigand'
@@ -37,24 +38,20 @@ if ([string]::IsNullOrWhiteSpace($Branch)) {
     $Branch = if ($env:PS_PROFILE_BRANCH) { $env:PS_PROFILE_BRANCH } else { $UpstreamBranch }
 }
 
-# Interactive confirmation for fork installs
-if ($RepoOwner -ne $UpstreamOwner -or $RepoName -ne $UpstreamName -or $Branch -ne $UpstreamBranch) {
-    # Only attempt interactive prompts when a UI is available and input is not redirected
-    $canPrompt = $Host -and $Host.UI -and $Host.UI.RawUI -and -not [System.Console]::IsInputRedirected
-    if ($canPrompt) {
-        Write-Host "`nFork detected — confirm repository settings:" -ForegroundColor Yellow
-        try {
-            $inputOwner = Read-Host "  Repository owner [$RepoOwner]"
-            if (-not [string]::IsNullOrWhiteSpace($inputOwner)) { $RepoOwner = $inputOwner.Trim() }
+# Interactive confirmation for fork installs (only when owner differs from upstream)
+if ($RepoOwner -ne $UpstreamOwner -and -not $Force) {
+    Write-Host "`nFork detected — confirm repository settings:" -ForegroundColor Yellow
+    try {
+        $inputOwner = Read-Host "  Repository owner [$RepoOwner]"
+        if (-not [string]::IsNullOrWhiteSpace($inputOwner)) { $RepoOwner = $inputOwner.Trim() }
 
-            $inputName = Read-Host "  Repository name  [$RepoName]"
-            if (-not [string]::IsNullOrWhiteSpace($inputName)) { $RepoName = $inputName.Trim() }
+        $inputName = Read-Host "  Repository name  [$RepoName]"
+        if (-not [string]::IsNullOrWhiteSpace($inputName)) { $RepoName = $inputName.Trim() }
 
-            $inputBranch = Read-Host "  Branch           [$Branch]"
-            if (-not [string]::IsNullOrWhiteSpace($inputBranch)) { $Branch = $inputBranch.Trim() }
-        } catch {
-            # In non-interactive or restricted environments, keep existing values and continue
-        }
+        $inputBranch = Read-Host "  Branch           [$Branch]"
+        if (-not [string]::IsNullOrWhiteSpace($inputBranch)) { $Branch = $inputBranch.Trim() }
+    } catch {
+        # In non-interactive or restricted environments, keep existing values and continue
     }
 }
 
@@ -70,7 +67,7 @@ function Get-RepoBase {
 }
 
 # Fork confirmation prompt
-if ($RepoOwner -ne $UpstreamOwner) {
+if ($RepoOwner -ne $UpstreamOwner -and -not $Force) {
     $message = @"
 This installer is running from a fork (https://github.com/$RepoOwner/$RepoName).
 Type YES to confirm you've reviewed the code and want to proceed
@@ -144,7 +141,7 @@ try {
 }
 
 # Git prompt style preference
-if ($FastThemeAvailable) {
+if ($FastThemeAvailable -and -not $Force) {
     Write-Host "`nGit prompt style:" -ForegroundColor Yellow
     Write-Host "  [1] Full status (branch, dirty, staged, ahead/behind, stash)" -ForegroundColor White
     Write-Host "  [2] Fast (branch name only — recommended if prompt feels slow)" -ForegroundColor White
