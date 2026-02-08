@@ -18,7 +18,7 @@ $repoConfigPaths = @(
 )
 foreach ($configPath in $repoConfigPaths) {
     if (Test-Path $configPath) {
-        try { . $configPath; break } catch { }
+        try { . $configPath; break } catch { Write-Warning "Failed to load repo config from '$configPath': $($_.Exception.Message)" }
     }
 }
 
@@ -120,7 +120,11 @@ Copy-Item (Join-Path $TempDir 'aliases.ps1') "$PS5ProfileDir\aliases.ps1" -Force
 
 # Update theme (respects git prompt style preference from install)
 $ThemeSource = if ($GitPromptStyle -eq 'fast') { 'themes/ohmy-posh-fast.omp.json' } else { 'themes/ohmy-posh.omp.json' }
-Copy-Item (Join-Path $TempDir $ThemeSource) "$HOME\themes\ohmy-posh.omp.json" -Force
+$ThemesDir = Join-Path $HOME 'themes'
+if (-not (Test-Path $ThemesDir)) {
+    New-Item -ItemType Directory -Path $ThemesDir -Force | Out-Null
+}
+Copy-Item (Join-Path $TempDir $ThemeSource) (Join-Path $ThemesDir 'ohmy-posh.omp.json') -Force
 
 Write-Host "  ✓ Profile files updated" -ForegroundColor Green
 
