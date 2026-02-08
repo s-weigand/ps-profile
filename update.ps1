@@ -11,21 +11,6 @@ param(
     [string]$Branch
 )
 
-function Get-RepoBase {
-    param(
-        [Parameter(Mandatory)][string]$Owner,
-        [Parameter(Mandatory)][string]$Name,
-        [Parameter(Mandatory)][string]$Branch
-    )
-    $ref = $Branch.Trim('/')
-    if ($ref -like '*/*' -and -not $ref.StartsWith('refs/')) { $ref = "refs/heads/$ref" }
-    return "https://raw.githubusercontent.com/$Owner/$Name/$ref"
-}
-
-$UpstreamOwner = 's-weigand'
-$UpstreamName = 'ps-profile'
-$UpstreamBranch = 'main'
-
 # Load persisted repo config if present (install.ps1 writes it)
 $repoConfigPaths = @(
     (Join-Path $HOME 'Documents\PowerShell\ps-profile.repo.ps1'),
@@ -38,11 +23,17 @@ foreach ($configPath in $repoConfigPaths) {
 }
 
 # Use params > config > upstream defaults
-if ([string]::IsNullOrWhiteSpace($RepoOwner)) { $RepoOwner = if ($Global:PSProfileRepoOwner) { $Global:PSProfileRepoOwner } else { $UpstreamOwner } }
-if ([string]::IsNullOrWhiteSpace($RepoName)) { $RepoName = if ($Global:PSProfileRepoName) { $Global:PSProfileRepoName } else { $UpstreamName } }
-if ([string]::IsNullOrWhiteSpace($Branch)) { $Branch = if ($Global:PSProfileRepoBranch) { $Global:PSProfileRepoBranch } else { $UpstreamBranch } }
+if ([string]::IsNullOrWhiteSpace($RepoOwner)) { $RepoOwner = if ($Global:PSProfileRepoOwner) { $Global:PSProfileRepoOwner } else { 's-weigand' } }
+if ([string]::IsNullOrWhiteSpace($RepoName)) { $RepoName = if ($Global:PSProfileRepoName) { $Global:PSProfileRepoName } else { 'ps-profile' } }
+if ([string]::IsNullOrWhiteSpace($Branch)) { $Branch = if ($Global:PSProfileRepoBranch) { $Global:PSProfileRepoBranch } else { 'main' } }
 
-$RepoBase = if ($Global:PSProfileRepoBase) { $Global:PSProfileRepoBase } else { Get-RepoBase -Owner $RepoOwner -Name $RepoName -Branch $Branch }
+if ($Global:PSProfileRepoBase) {
+    $RepoBase = $Global:PSProfileRepoBase
+} else {
+    $ref = $Branch.Trim('/')
+    if ($ref -like '*/*' -and -not $ref.StartsWith('refs/')) { $ref = "refs/heads/$ref" }
+    $RepoBase = "https://raw.githubusercontent.com/$RepoOwner/$RepoName/$ref"
+}
 
 Write-Host "Updating PowerShell Profile..." -ForegroundColor Cyan
 Write-Host "Repository: https://github.com/$RepoOwner/$RepoName" -ForegroundColor Gray

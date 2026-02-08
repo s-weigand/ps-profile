@@ -105,8 +105,8 @@ New-Item -ItemType Directory -Path $TempDir -Force | Out-Null
 # Download profile files
 Write-Host "Downloading profile files..." -ForegroundColor Yellow
 $FilesToDownload = @{
-    'Profile.ps1' = "$RepoBase/Profile.ps1"
-    'aliases.ps1' = "$RepoBase/aliases.ps1"
+    'Profile.ps1'               = "$RepoBase/Profile.ps1"
+    'aliases.ps1'               = "$RepoBase/aliases.ps1"
     'themes/ohmy-posh.omp.json' = "$RepoBase/themes/ohmy-posh.omp.json"
 }
 
