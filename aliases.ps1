@@ -20,12 +20,14 @@ function update-ps-profile {
     $shell = if (Get-Command pwsh -ErrorAction SilentlyContinue) { 'pwsh' } else { 'powershell' }
     $updateUrl = "$repoBase/update.ps1"
     $scriptCommand = "iex (irm '$updateUrl')"
-
-    if ($AsAdmin) {
-        Start-Process -FilePath $shell -ArgumentList @("-NoExit", "-Command", $scriptCommand) -Verb RunAs -Wait
-    } else {
-        Start-Process -FilePath $shell -ArgumentList @("-NoExit", "-Command", $scriptCommand) -Wait
+    $startProcessArgs = @{
+        FilePath     = $shell
+        ArgumentList = @("-NoExit", "-Command", $scriptCommand)
+        Wait         = $true
     }
+
+    if ($AsAdmin) { $startProcessArgs.Verb = 'RunAs' }
+    Start-Process @startProcessArgs
 }
 
 
