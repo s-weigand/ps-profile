@@ -108,7 +108,6 @@ $FilesToDownload = @{
     'Profile.ps1' = "$RepoBase/Profile.ps1"
     'aliases.ps1' = "$RepoBase/aliases.ps1"
     'themes/ohmy-posh.omp.json' = "$RepoBase/themes/ohmy-posh.omp.json"
-    'themes/ohmy-posh-fast.omp.json' = "$RepoBase/themes/ohmy-posh-fast.omp.json"
 }
 
 foreach ($File in $FilesToDownload.GetEnumerator()) {
@@ -123,12 +122,27 @@ foreach ($File in $FilesToDownload.GetEnumerator()) {
     Write-Host "  ✓ $($File.Key)" -ForegroundColor Green
 }
 
+# Try to download fast theme (optional — may not exist on upstream yet)
+$FastThemeAvailable = $false
+$FastThemePath = Join-Path $TempDir 'themes/ohmy-posh-fast.omp.json'
+try {
+    Invoke-RestMethod "$RepoBase/themes/ohmy-posh-fast.omp.json" -OutFile $FastThemePath
+    Write-Host "  ✓ themes/ohmy-posh-fast.omp.json" -ForegroundColor Green
+    $FastThemeAvailable = $true
+} catch {
+    # Not available on this branch — fast option won't be offered
+}
+
 # Git prompt style preference
-Write-Host "`nGit prompt style:" -ForegroundColor Yellow
-Write-Host "  [1] Full status (branch, dirty, staged, ahead/behind, stash)" -ForegroundColor White
-Write-Host "  [2] Fast (branch name only — recommended if prompt feels slow)" -ForegroundColor White
-$gitPromptChoice = Read-Host "Choose [1]"
-$GitPromptStyle = if ($gitPromptChoice -eq '2') { 'fast' } else { 'full' }
+if ($FastThemeAvailable) {
+    Write-Host "`nGit prompt style:" -ForegroundColor Yellow
+    Write-Host "  [1] Full status (branch, dirty, staged, ahead/behind, stash)" -ForegroundColor White
+    Write-Host "  [2] Fast (branch name only — recommended if prompt feels slow)" -ForegroundColor White
+    $gitPromptChoice = Read-Host "Choose [1]"
+    $GitPromptStyle = if ($gitPromptChoice -eq '2') { 'fast' } else { 'full' }
+} else {
+    $GitPromptStyle = 'full'
+}
 Write-Host "  ✓ Git prompt: $GitPromptStyle" -ForegroundColor Green
 
 # Install PowerShell modules

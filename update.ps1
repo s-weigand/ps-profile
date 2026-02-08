@@ -63,7 +63,6 @@ $FilesToDownload = @{
     'Profile.ps1' = "$RepoBase/Profile.ps1"
     'aliases.ps1' = "$RepoBase/aliases.ps1"
     'themes/ohmy-posh.omp.json' = "$RepoBase/themes/ohmy-posh.omp.json"
-    'themes/ohmy-posh-fast.omp.json' = "$RepoBase/themes/ohmy-posh-fast.omp.json"
 }
 
 foreach ($File in $FilesToDownload.GetEnumerator()) {
@@ -76,6 +75,19 @@ foreach ($File in $FilesToDownload.GetEnumerator()) {
 
     Invoke-RestMethod $File.Value -OutFile $LocalPath
     Write-Host "  ✓ $($File.Key)" -ForegroundColor Green
+}
+
+# Download fast theme if user prefers it (optional — may not exist on upstream)
+if ($GitPromptStyle -eq 'fast') {
+    $FastThemePath = Join-Path $TempDir 'themes/ohmy-posh-fast.omp.json'
+    try {
+        Invoke-RestMethod "$RepoBase/themes/ohmy-posh-fast.omp.json" -OutFile $FastThemePath
+        Write-Host "  ✓ themes/ohmy-posh-fast.omp.json" -ForegroundColor Green
+    } catch {
+        # Fast theme not available on this branch — fall back to full
+        Write-Host "  ⚠ Fast theme not available, using full" -ForegroundColor Yellow
+        $GitPromptStyle = 'full'
+    }
 }
 
 # Update PowerShell modules
