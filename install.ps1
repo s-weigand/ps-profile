@@ -176,51 +176,48 @@ foreach ($Tool in $Tools) {
 
 # Install MesloLGS NF font
 Write-Host "Installing MesloLGS NF font..." -ForegroundColor Yellow
-$FontUrls = @(
-    'https://github.com/romkatv/powerlevel10k-media/raw/master/MesloLGS%20NF%20Regular.ttf',
-    'https://github.com/romkatv/powerlevel10k-media/raw/master/MesloLGS%20NF%20Bold.ttf',
-    'https://github.com/romkatv/powerlevel10k-media/raw/master/MesloLGS%20NF%20Italic.ttf',
-    'https://github.com/romkatv/powerlevel10k-media/raw/master/MesloLGS%20NF%20Bold%20Italic.ttf'
-)
+$FontBaseUrl = 'https://github.com/romkatv/powerlevel10k-media/raw/master'
+$FontNames = @('MesloLGS NF Regular.ttf', 'MesloLGS NF Bold.ttf', 'MesloLGS NF Italic.ttf', 'MesloLGS NF Bold Italic.ttf')
 
-$TempFontsFolder = Join-Path $TempDir 'fonts'
-if (-not (Test-Path $TempFontsFolder)) {
-    New-Item -ItemType Directory -Path $TempFontsFolder -Force | Out-Null
+# Skip download if all fonts are already installed
+$UserFonts = "$env:LOCALAPPDATA\Microsoft\Windows\Fonts"
+$missingFonts = $FontNames | Where-Object {
+    -not (Test-Path "$env:WINDIR\Fonts\$_") -and -not (Test-Path "$UserFonts\$_")
 }
 
-# Download fonts to temp directory
-foreach ($FontUrl in $FontUrls) {
-    $FontName = [System.IO.Path]::GetFileName($FontUrl) -replace '%20', ' '
-    $FontPath = Join-Path $TempFontsFolder $FontName
-
-    try {
-        Invoke-WebRequest -Uri $FontUrl -OutFile $FontPath
-        Write-Host "  ✓ Downloaded $FontName" -ForegroundColor Green
-    } catch {
-        Write-Host "  ✗ Failed to download $FontName" -ForegroundColor Red
-        continue
+if (-not $missingFonts) {
+    Write-Host "  ✓ MesloLGS NF fonts (already installed)" -ForegroundColor Gray
+} else {
+    $TempFontsFolder = Join-Path $TempDir 'fonts'
+    if (-not (Test-Path $TempFontsFolder)) {
+        New-Item -ItemType Directory -Path $TempFontsFolder -Force | Out-Null
     }
-}
 
-# Install fonts using shell interface for proper registration
-$shell = New-Object -ComObject Shell.Application
-$fonts = $shell.Namespace(0x14)  # CSIDL_FONTS
+    # Download missing fonts to temp directory
+    foreach ($FontName in $missingFonts) {
+        $FontUrl = "$FontBaseUrl/$($FontName -replace ' ', '%20')"
+        $FontPath = Join-Path $TempFontsFolder $FontName
 
-Get-ChildItem $TempFontsFolder -Filter "*.ttf" | ForEach-Object {
-    $FontFile = $_.FullName
-    $FontName = $_.Name
-
-    try {
-        # Check if font is already installed
-        $installedFonts = Get-ChildItem "$env:WINDIR\Fonts" -Filter "*$($_.BaseName)*"
-        if (-not $installedFonts) {
-            $fonts.CopyHere($FontFile)
-            Write-Host "  ✓ Installed $FontName" -ForegroundColor Green
-        } else {
-            Write-Host "  ✓ $FontName (already installed)" -ForegroundColor Gray
+        try {
+            Invoke-WebRequest -Uri $FontUrl -OutFile $FontPath
+            Write-Host "  ✓ Downloaded $FontName" -ForegroundColor Green
+        } catch {
+            Write-Host "  ✗ Failed to download $FontName" -ForegroundColor Red
+            continue
         }
-    } catch {
-        Write-Host "  ✗ Failed to install $FontName" -ForegroundColor Red
+    }
+
+    # Install fonts using shell interface for proper registration
+    $shell = New-Object -ComObject Shell.Application
+    $fonts = $shell.Namespace(0x14)  # CSIDL_FONTS
+
+    Get-ChildItem $TempFontsFolder -Filter "*.ttf" | ForEach-Object {
+        try {
+            $fonts.CopyHere($_.FullName)
+            Write-Host "  ✓ Installed $($_.Name)" -ForegroundColor Green
+        } catch {
+            Write-Host "  ✗ Failed to install $($_.Name)" -ForegroundColor Red
+        }
     }
 }
 
