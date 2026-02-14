@@ -39,7 +39,7 @@ function update-ps-profile {
     }
 
     if ($AsAdmin) { $StartProcessArgs.Verb = 'RunAs' }
-    Start-Process @startProcessArgs
+    Start-Process @StartProcessArgs
 }
 
 
@@ -52,17 +52,17 @@ function br {
     try {
         # Use call operator with splatting for proper argument handling
         $BrootArgs = @('--outcmd', $CmdFile.FullName) + $Args
-        & broot @brootArgs
+        & broot @BrootArgs
         $ExitCode = $LASTEXITCODE
     } catch {
         $ExitCode = 1
     }
 
-    If ($ExitCode -eq 0) {
+    if ($ExitCode -eq 0) {
         $Cmd = Get-Content $CmdFile
         Remove-Item $CmdFile
-        If ($Cmd -ne $Null) { Invoke-Expression -Command $Cmd }
-    } Else {
+        if ($Cmd -ne $Null) { Invoke-Expression -Command $Cmd }
+    } else {
         Remove-Item $CmdFile
         Write-Host "`n" # Newline to tidy up broot unexpected termination
         Write-Error "broot.exe exited with error code $ExitCode"

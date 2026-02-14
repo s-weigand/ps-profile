@@ -34,27 +34,27 @@ if ([string]::IsNullOrWhiteSpace($Branch)) { $Branch = $UpstreamBranch }
 
 function Get-RepoBase {
     param(
-        [Parameter(Mandatory)][string]$Owner,
-        [Parameter(Mandatory)][string]$Name,
+        [Parameter(Mandatory)][string]$RepoOwner,
+        [Parameter(Mandatory)][string]$RepoName,
         [Parameter(Mandatory)][string]$Branch
     )
     $Ref = $Branch.Trim('/')
     if ($Ref -like '*/*' -and -not $Ref.StartsWith('refs/')) { $Ref = "refs/heads/$Ref" }
-    "https://raw.githubusercontent.com/$Owner/$Name/$Ref"
+    "https://raw.githubusercontent.com/$RepoOwner/$RepoName/$Ref"
 }
 
 function New-RepoConfigContent {
     param(
-        [Parameter(Mandatory)][string]$Owner,
-        [Parameter(Mandatory)][string]$Name,
+        [Parameter(Mandatory)][string]$RepoOwner,
+        [Parameter(Mandatory)][string]$RepoName,
         [Parameter(Mandatory)][string]$Branch,
         [Parameter(Mandatory)][string]$GitPromptStyle
     )
 
-    $RepoBase = Get-RepoBase -Owner $Owner -Name $Name -Branch $Branch
+    $RepoBase = Get-RepoBase -RepoOwner $RepoOwner -RepoName $RepoName -Branch $Branch
 
-    $EscapedOwner = ('' + $Owner) -replace "'", "''"
-    $EscapedName = ('' + $Name) -replace "'", "''"
+    $EscapedOwner = ('' + $RepoOwner) -replace "'", "''"
+    $EscapedName = ('' + $RepoName) -replace "'", "''"
     $EscapedBranch = ('' + $Branch) -replace "'", "''"
     $EscapedRepoBase = ('' + $RepoBase) -replace "'", "''"
     $EscapedGitPromptStyle = ('' + $GitPromptStyle) -replace "'", "''"
@@ -90,7 +90,7 @@ if ($IsNonUpstream -and -not $Force) {
     }
 }
 
-$RepoBase = Get-RepoBase -Owner $RepoOwner -Name $RepoName -Branch $Branch
+$RepoBase = Get-RepoBase -RepoOwner $RepoOwner -RepoName $RepoName -Branch $Branch
 
 # Set execution policy to allow remote signed scripts
 Write-Host "Setting execution policy..." -ForegroundColor Yellow
@@ -387,7 +387,7 @@ Copy-Item (Join-Path $TempDir 'aliases.ps1') "$PS5ProfileDir\aliases.ps1" -Force
 Write-Host "  ✓ Windows PowerShell 5.x profile" -ForegroundColor Green
 
 # Copy theme to home directory
-$ThemesDir = "$HOME\themes"
+$ThemesDir = Join-Path $HOME 'themes'
 if (-not (Test-Path $ThemesDir)) {
     New-Item -ItemType Directory -Path $ThemesDir -Force | Out-Null
 }
@@ -396,7 +396,7 @@ Copy-Item (Join-Path $TempDir $ThemeSource) "$ThemesDir\ohmy-posh.omp.json" -For
 Write-Host "  ✓ Oh-My-Posh theme ($GitPromptStyle)" -ForegroundColor Green
 
 # Persist config for future updates
-$RepoConfigContent = New-RepoConfigContent -Owner $RepoOwner -Name $RepoName -Branch $Branch -GitPromptStyle $GitPromptStyle
+$RepoConfigContent = New-RepoConfigContent -RepoOwner $RepoOwner -RepoName $RepoName -Branch $Branch -GitPromptStyle $GitPromptStyle
 $RepoConfigPaths = @(
     (Join-Path $PS7ProfileDir 'ps-profile.repo.ps1'),
     (Join-Path $PS5ProfileDir 'ps-profile.repo.ps1')

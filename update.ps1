@@ -13,29 +13,29 @@ param(
 
 function Get-RepoBase {
     param(
-        [Parameter(Mandatory)][string]$Owner,
-        [Parameter(Mandatory)][string]$Name,
-        [Parameter(Mandatory)][string]$BranchName
+        [Parameter(Mandatory)][string]$RepoOwner,
+        [Parameter(Mandatory)][string]$RepoName,
+        [Parameter(Mandatory)][string]$Branch
     )
 
-    $Ref = $BranchName.Trim('/')
+    $Ref = $Branch.Trim('/')
     if ($Ref -like '*/*' -and -not $Ref.StartsWith('refs/')) { $Ref = "refs/heads/$Ref" }
-    "https://raw.githubusercontent.com/$Owner/$Name/$Ref"
+    "https://raw.githubusercontent.com/$RepoOwner/$RepoName/$Ref"
 }
 
 function New-RepoConfigContent {
     param(
-        [Parameter(Mandatory)][string]$Owner,
-        [Parameter(Mandatory)][string]$Name,
-        [Parameter(Mandatory)][string]$BranchName,
+        [Parameter(Mandatory)][string]$RepoOwner,
+        [Parameter(Mandatory)][string]$RepoName,
+        [Parameter(Mandatory)][string]$Branch,
         [Parameter(Mandatory)][string]$GitPromptStyle
     )
 
-    $RepoBase = Get-RepoBase -Owner $Owner -Name $Name -BranchName $BranchName
+    $RepoBase = Get-RepoBase -RepoOwner $RepoOwner -RepoName $RepoName -Branch $Branch
 
-    $EscapedOwner = ('' + $Owner) -replace "'", "''"
-    $EscapedName = ('' + $Name) -replace "'", "''"
-    $EscapedBranch = ('' + $BranchName) -replace "'", "''"
+    $EscapedOwner = ('' + $RepoOwner) -replace "'", "''"
+    $EscapedName = ('' + $RepoName) -replace "'", "''"
+    $EscapedBranch = ('' + $Branch) -replace "'", "''"
     $EscapedRepoBase = ('' + $RepoBase) -replace "'", "''"
     $EscapedGitPromptStyle = ('' + $GitPromptStyle) -replace "'", "''"
 
@@ -72,7 +72,7 @@ if ([string]::IsNullOrWhiteSpace($RepoOwner)) { $RepoOwner = if ($PersistedRepoC
 if ([string]::IsNullOrWhiteSpace($RepoName)) { $RepoName = if ($PersistedRepoConfig -and $PersistedRepoConfig.Name) { $PersistedRepoConfig.Name } else { 'ps-profile' } }
 if ([string]::IsNullOrWhiteSpace($Branch)) { $Branch = if ($PersistedRepoConfig -and $PersistedRepoConfig.Branch) { $PersistedRepoConfig.Branch } else { 'main' } }
 
-$RepoBase = Get-RepoBase -Owner $RepoOwner -Name $RepoName -BranchName $Branch
+$RepoBase = Get-RepoBase -RepoOwner $RepoOwner -RepoName $RepoName -Branch $Branch
 
 Write-Host "Updating PowerShell Profile..." -ForegroundColor Cyan
 Write-Host "  Repo:   https://github.com/$RepoOwner/$RepoName" -ForegroundColor Gray
@@ -119,9 +119,13 @@ if ($GitPromptStyle -eq 'fast') {
         Write-Host "  ⚠ Fast theme not available, falling back to full" -ForegroundColor Yellow
         $GitPromptStyle = 'full'
 
-        $RepoConfigContent = New-RepoConfigContent -Owner $RepoOwner -Name $RepoName -BranchName $Branch -GitPromptStyle $GitPromptStyle
-        foreach ($ConfigPath in $ExistingRepoConfigPaths) {
+        $RepoConfigContent = New-RepoConfigContent -RepoOwner $RepoOwner -RepoName $RepoName -Branch $Branch -GitPromptStyle $GitPromptStyle
+        foreach ($ConfigPath in $RepoConfigPaths) {
             try {
+                $ConfigDir = Split-Path -Path $ConfigPath -Parent
+                if (-not (Test-Path $ConfigDir)) {
+                    New-Item -ItemType Directory -Path $ConfigDir -Force | Out-Null
+                }
                 $RepoConfigContent | Set-Content -Path $ConfigPath -Encoding utf8 -Force
             } catch {
                 Write-Warning "Failed to update git prompt style in '$ConfigPath': $($PSItem.Exception.Message)"
