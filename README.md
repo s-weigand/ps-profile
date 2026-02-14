@@ -142,7 +142,7 @@ Or use the `update-ps-profile` alias (updates from your configured repo).
 
 Fork this repository and modify:
 
-- [Profile.ps1](Profile.ps1) - Main profile logic
+- [profile.ps1](profile.ps1) - Main profile logic
 - [aliases.ps1](aliases.ps1) - Custom functions and aliases
 - [themes/ohmy-posh.omp.json](themes/ohmy-posh.omp.json) - Prompt theme (try the [visual configurator](https://github.com/jamesmontemagno/ohmyposh-configurator))
 

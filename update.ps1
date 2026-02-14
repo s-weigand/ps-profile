@@ -91,7 +91,7 @@ Write-Host "Downloading latest profile files..." -ForegroundColor Yellow
 $GitPromptStyle = if ($PersistedRepoConfig -and $PersistedRepoConfig.GitPromptStyle) { $PersistedRepoConfig.GitPromptStyle } else { 'full' }
 
 $FilesToDownload = @{
-    'Profile.ps1' = "$RepoBase/Profile.ps1"
+    'profile.ps1' = "$RepoBase/profile.ps1"
     'aliases.ps1' = "$RepoBase/aliases.ps1"
     'themes/ohmy-posh.omp.json' = "$RepoBase/themes/ohmy-posh.omp.json"
 }
@@ -163,12 +163,12 @@ Write-Host "Updating profile files..." -ForegroundColor Yellow
 
 # PowerShell 7+
 $PS7ProfileDir = "$HOME\Documents\PowerShell"
-Copy-Item (Join-Path $TempDir 'Profile.ps1') "$PS7ProfileDir\Profile.ps1" -Force
+Copy-Item (Join-Path $TempDir 'profile.ps1') "$PS7ProfileDir\profile.ps1" -Force
 Copy-Item (Join-Path $TempDir 'aliases.ps1') "$PS7ProfileDir\aliases.ps1" -Force
 
 # Windows PowerShell 5.x
 $PS5ProfileDir = "$HOME\Documents\WindowsPowerShell"
-Copy-Item (Join-Path $TempDir 'Profile.ps1') "$PS5ProfileDir\Profile.ps1" -Force
+Copy-Item (Join-Path $TempDir 'profile.ps1') "$PS5ProfileDir\profile.ps1" -Force
 Copy-Item (Join-Path $TempDir 'aliases.ps1') "$PS5ProfileDir\aliases.ps1" -Force
 
 # Update theme (respects git prompt style preference from install)
@@ -211,24 +211,24 @@ if (Test-Path $TerminalSettingsPath) {
         if (-not $TerminalSettings.actions) {
             $TerminalSettings | Add-Member -MemberType NoteProperty -Name 'actions' -Value @() -Force
         }
-        
+
         # Check if Alt+Enter is already unbound
-        $AltEnterUnbound = $TerminalSettings.actions | Where-Object { 
+        $AltEnterUnbound = $TerminalSettings.actions | Where-Object {
             $PSItem.keys -eq 'alt+enter' -and $Null -eq $PSItem.command
         }
-        
+
         if (-not $AltEnterUnbound) {
             # Convert to array if not already
             if ($TerminalSettings.actions -isnot [System.Array]) {
                 $TerminalSettings.actions = @($TerminalSettings.actions)
             }
-            
+
             # Add the unbound keybinding
             $TerminalSettings.actions = @($TerminalSettings.actions) + @([PSCustomObject]@{
                 command = $Null
                 keys    = 'alt+enter'
             })
-            
+
             # Save settings with proper formatting and depth
             $TerminalSettings | ConvertTo-Json -Depth 10 | Set-Content $TerminalSettingsPath -Encoding utf8
             Write-Host "  ✓ Windows Terminal Alt+Enter keybinding disabled" -ForegroundColor Green

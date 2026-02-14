@@ -108,7 +108,7 @@ New-Item -ItemType Directory -Path $TempDir -Force | Out-Null
 # Download profile files
 Write-Host "Downloading profile files..." -ForegroundColor Yellow
 $FilesToDownload = @{
-    'Profile.ps1'               = "$RepoBase/Profile.ps1"
+    'profile.ps1'               = "$RepoBase/profile.ps1"
     'aliases.ps1'               = "$RepoBase/aliases.ps1"
     'themes/ohmy-posh.omp.json' = "$RepoBase/themes/ohmy-posh.omp.json"
 }
@@ -369,9 +369,9 @@ $PS7ProfileDir = "$HOME\Documents\PowerShell"
 if (-not (Test-Path $PS7ProfileDir)) {
     New-Item -ItemType Directory -Path $PS7ProfileDir -Force | Out-Null
 }
-Backup-ExistingFile "$PS7ProfileDir\Profile.ps1"
+Backup-ExistingFile "$PS7ProfileDir\profile.ps1"
 Backup-ExistingFile "$PS7ProfileDir\aliases.ps1"
-Copy-Item (Join-Path $TempDir 'Profile.ps1') "$PS7ProfileDir\Profile.ps1" -Force
+Copy-Item (Join-Path $TempDir 'profile.ps1') "$PS7ProfileDir\profile.ps1" -Force
 Copy-Item (Join-Path $TempDir 'aliases.ps1') "$PS7ProfileDir\aliases.ps1" -Force
 Write-Host "  ✓ PowerShell 7+ profile" -ForegroundColor Green
 
@@ -380,9 +380,9 @@ $PS5ProfileDir = "$HOME\Documents\WindowsPowerShell"
 if (-not (Test-Path $PS5ProfileDir)) {
     New-Item -ItemType Directory -Path $PS5ProfileDir -Force | Out-Null
 }
-Backup-ExistingFile "$PS5ProfileDir\Profile.ps1"
+Backup-ExistingFile "$PS5ProfileDir\profile.ps1"
 Backup-ExistingFile "$PS5ProfileDir\aliases.ps1"
-Copy-Item (Join-Path $TempDir 'Profile.ps1') "$PS5ProfileDir\Profile.ps1" -Force
+Copy-Item (Join-Path $TempDir 'profile.ps1') "$PS5ProfileDir\profile.ps1" -Force
 Copy-Item (Join-Path $TempDir 'aliases.ps1') "$PS5ProfileDir\aliases.ps1" -Force
 Write-Host "  ✓ Windows PowerShell 5.x profile" -ForegroundColor Green
 
