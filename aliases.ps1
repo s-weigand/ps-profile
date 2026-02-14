@@ -16,7 +16,19 @@ function .. {
 function update-ps-profile {
     param([switch]$AsAdmin)
 
-    $repoBase = if ($Global:PSProfileRepoBase) { "$Global:PSProfileRepoBase".TrimEnd('/') } else { 'https://raw.githubusercontent.com/s-weigand/ps-profile/main' }
+    $repoBase = 'https://raw.githubusercontent.com/s-weigand/ps-profile/main'
+    $repoConfigPath = Join-Path $PSScriptRoot 'ps-profile.repo.ps1'
+    if (Test-Path $repoConfigPath) {
+        try {
+            $repoConfig = . $repoConfigPath
+            if ($repoConfig -and $repoConfig.Base) {
+                $repoBase = ('' + $repoConfig.Base).TrimEnd('/')
+            }
+        } catch {
+            Write-Warning "Failed to load profile repo config from '$repoConfigPath': $($_.Exception.Message)"
+        }
+    }
+
     $shell = if (Get-Command pwsh -ErrorAction SilentlyContinue) { 'pwsh' } else { 'powershell' }
     $updateUrl = "$repoBase/update.ps1"
     $scriptCommand = "iex (irm '$updateUrl')"

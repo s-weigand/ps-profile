@@ -13,18 +13,16 @@ iex "& { $(irm 'https://raw.githubusercontent.com/s-weigand/ps-profile/main/inst
 ## Install from your fork
 
 ```powershell
-# Via parameters
+# Via parameters (recommended)
 ./install.ps1 -RepoOwner your-user -RepoName ps-profile -Branch develop
-
-# Via environment variables
-$env:PS_PROFILE_OWNER = 'your-user'
-$env:PS_PROFILE_BRANCH = 'develop'
-./install.ps1
 ```
+
+The installer always shows the repository and branch source.
+When installing from a non-upstream source, it asks for confirmation with `Continue? [Y/n]` (default is Yes).
 
 When installing from a fork, the installer writes a config file so `update-ps-profile` updates from your fork automatically.
 
-Priority: explicit parameter > environment variable > upstream default.
+Priority: explicit parameter > upstream default.
 
 ### Git prompt style
 
