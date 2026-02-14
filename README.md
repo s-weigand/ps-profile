@@ -4,7 +4,7 @@
 
 A universal PowerShell profile that works across PowerShell 5.x and 7+ on Windows, with enhanced command-line tools and productivity features.
 
-## Quick Install
+## Quick Install (from upstream)
 
 ```powershell
 iex "& { $(irm 'https://raw.githubusercontent.com/s-weigand/ps-profile/main/install.ps1') }"
@@ -15,6 +15,12 @@ iex "& { $(irm 'https://raw.githubusercontent.com/s-weigand/ps-profile/main/inst
 ```powershell
 # Via parameters (recommended)
 ./install.ps1 -RepoOwner your-user -RepoName ps-profile -Branch develop
+```
+
+You can also install directly from a fork/branch URL and pass matching arguments:
+
+```powershell
+iex "& { $(irm 'https://raw.githubusercontent.com/your-user/your-repo/refs/heads/your-branch/install.ps1') } -RepoOwner your-user -RepoName your-repo -Branch your-branch"
 ```
 
 The installer always shows the repository and branch source.
