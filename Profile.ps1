@@ -19,17 +19,17 @@ Set-PSReadLineKeyHandler -Key Ctrl+RightArrow `
     -BriefDescription ForwardCharAndAcceptNextSuggestionWord `
     -LongDescription "Move cursor one character to the right in the current editing line and accept the next word in suggestion when it's at the end of current editing line" `
     -ScriptBlock {
-    param($key, $arg)
+    param($Key, $Arg)
 
-    $line = $null
-    $cursor = $null
-    [Microsoft.PowerShell.PSConsoleReadLine]::GetBufferState([ref]$line, [ref]$cursor)
+    $Line = $Null
+    $Cursor = $Null
+    [Microsoft.PowerShell.PSConsoleReadLine]::GetBufferState([ref]$Line, [ref]$Cursor)
 
-    if ($cursor -lt $line.Length) {
-        [Microsoft.PowerShell.PSConsoleReadLine]::ForwardChar($key, $arg)
+    if ($Cursor -lt $Line.Length) {
+        [Microsoft.PowerShell.PSConsoleReadLine]::ForwardChar($Key, $Arg)
     }
     else {
-        [Microsoft.PowerShell.PSConsoleReadLine]::AcceptNextSuggestionWord($key, $arg)
+        [Microsoft.PowerShell.PSConsoleReadLine]::AcceptNextSuggestionWord($Key, $Arg)
     }
 }
 
@@ -38,44 +38,44 @@ Set-PSReadLineKeyHandler -Key F7 `
     -BriefDescription History `
     -LongDescription 'Show command history' `
     -ScriptBlock {
-    $pattern = $null
-    [Microsoft.PowerShell.PSConsoleReadLine]::GetBufferState([ref]$pattern, [ref]$null)
-    if ($pattern) {
-        $pattern = [regex]::Escape($pattern)
+    $Pattern = $Null
+    [Microsoft.PowerShell.PSConsoleReadLine]::GetBufferState([ref]$Pattern, [ref]$Null)
+    if ($Pattern) {
+        $Pattern = [regex]::Escape($Pattern)
     }
 
-    $history = [System.Collections.ArrayList]@(
-        $last = ''
-        $lines = ''
-        foreach ($line in [System.IO.File]::ReadLines((Get-PSReadLineOption).HistorySavePath)) {
-            if ($line.EndsWith('`')) {
-                $line = $line.Substring(0, $line.Length - 1)
-                $lines = if ($lines) {
-                    "$lines`n$line"
+    $History = [System.Collections.ArrayList]@(
+        $Last = ''
+        $Lines = ''
+        foreach ($Line in [System.IO.File]::ReadLines((Get-PSReadLineOption).HistorySavePath)) {
+            if ($Line.EndsWith('`')) {
+                $Line = $Line.Substring(0, $Line.Length - 1)
+                $Lines = if ($Lines) {
+                    "$Lines`n$Line"
                 }
                 else {
-                    $line
+                    $Line
                 }
                 continue
             }
 
-            if ($lines) {
-                $line = "$lines`n$line"
-                $lines = ''
+            if ($Lines) {
+                $Line = "$Lines`n$Line"
+                $Lines = ''
             }
 
-            if (($line -cne $last) -and (!$pattern -or ($line -match $pattern))) {
-                $last = $line
-                $line
+            if (($Line -cne $Last) -and (!$Pattern -or ($Line -match $Pattern))) {
+                $Last = $Line
+                $Line
             }
         }
     )
-    $history.Reverse()
+    $History.Reverse()
 
-    $command = $history | Out-GridView -Title History -PassThru
-    if ($command) {
+    $Command = $History | Out-GridView -Title History -PassThru
+    if ($Command) {
         [Microsoft.PowerShell.PSConsoleReadLine]::RevertLine()
-        [Microsoft.PowerShell.PSConsoleReadLine]::Insert(($command -join "`n"))
+        [Microsoft.PowerShell.PSConsoleReadLine]::Insert(($Command -join "`n"))
     }
 }
 
@@ -115,5 +115,5 @@ if (Test-Path $AliasesPath) {
 }
 
 if (Get-Command code -ErrorAction SilentlyContinue) {
-    $ENV:EDITOR = 'code'
+    $Env:EDITOR = 'code'
 }

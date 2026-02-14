@@ -16,29 +16,29 @@ function .. {
 function update-ps-profile {
     param([switch]$AsAdmin)
 
-    $repoBase = 'https://raw.githubusercontent.com/s-weigand/ps-profile/main'
-    $repoConfigPath = Join-Path $PSScriptRoot 'ps-profile.repo.ps1'
-    if (Test-Path $repoConfigPath) {
+    $RepoBase = 'https://raw.githubusercontent.com/s-weigand/ps-profile/main'
+    $RepoConfigPath = Join-Path $PSScriptRoot 'ps-profile.repo.ps1'
+    if (Test-Path $RepoConfigPath) {
         try {
-            $repoConfig = . $repoConfigPath
-            if ($repoConfig -and $repoConfig.Base) {
-                $repoBase = ('' + $repoConfig.Base).TrimEnd('/')
+            $RepoConfig = . $RepoConfigPath
+            if ($RepoConfig -and $RepoConfig.Base) {
+                $RepoBase = ('' + $RepoConfig.Base).TrimEnd('/')
             }
         } catch {
-            Write-Warning "Failed to load profile repo config from '$repoConfigPath': $($_.Exception.Message)"
+            Write-Warning "Failed to load profile repo config from '$RepoConfigPath': $($PSItem.Exception.Message)"
         }
     }
 
-    $shell = if (Get-Command pwsh -ErrorAction SilentlyContinue) { 'pwsh' } else { 'powershell' }
-    $updateUrl = "$repoBase/update.ps1"
-    $scriptCommand = "iex (irm '$updateUrl')"
-    $startProcessArgs = @{
-        FilePath     = $shell
-        ArgumentList = @("-NoExit", "-Command", $scriptCommand)
-        Wait         = $true
+    $Shell = if (Get-Command pwsh -ErrorAction SilentlyContinue) { 'pwsh' } else { 'powershell' }
+    $UpdateUrl = "$RepoBase/update.ps1"
+    $ScriptCommand = "iex (irm '$UpdateUrl')"
+    $StartProcessArgs = @{
+        FilePath     = $Shell
+        ArgumentList = @("-NoExit", "-Command", $ScriptCommand)
+        Wait         = $True
     }
 
-    if ($AsAdmin) { $startProcessArgs.Verb = 'RunAs' }
+    if ($AsAdmin) { $StartProcessArgs.Verb = 'RunAs' }
     Start-Process @startProcessArgs
 }
 
@@ -47,24 +47,24 @@ function update-ps-profile {
 # This should be created by `broot --install` but isn't see ref:
 # https://github.com/Canop/broot/issues/788
 function br {
-    $cmd_file = New-TemporaryFile
+    $CmdFile = New-TemporaryFile
 
     try {
         # Use call operator with splatting for proper argument handling
-        $brootArgs = @('--outcmd', $cmd_file.FullName) + $args
+        $BrootArgs = @('--outcmd', $CmdFile.FullName) + $Args
         & broot @brootArgs
-        $exitCode = $LASTEXITCODE
+        $ExitCode = $LASTEXITCODE
     } catch {
-        $exitCode = 1
+        $ExitCode = 1
     }
 
-    If ($exitCode -eq 0) {
-        $cmd = Get-Content $cmd_file
-        Remove-Item $cmd_file
-        If ($cmd -ne $null) { Invoke-Expression -Command $cmd }
+    If ($ExitCode -eq 0) {
+        $Cmd = Get-Content $CmdFile
+        Remove-Item $CmdFile
+        If ($Cmd -ne $Null) { Invoke-Expression -Command $Cmd }
     } Else {
-        Remove-Item $cmd_file
+        Remove-Item $CmdFile
         Write-Host "`n" # Newline to tidy up broot unexpected termination
-        Write-Error "broot.exe exited with error code $exitCode"
+        Write-Error "broot.exe exited with error code $ExitCode"
     }
 }
