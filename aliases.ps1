@@ -12,10 +12,34 @@ function .. {
     Set-Location ..
 }
 
-# Update PowerShell profile as admin
+# Update PowerShell profile
 function update-ps-profile {
-    $UpdateScript = "iex (irm 'https://raw.githubusercontent.com/s-weigand/ps-profile/main/update.ps1')"
-    Start-Process powershell -ArgumentList "-NoExit", "-Command", $UpdateScript -Verb RunAs -Wait
+    param([switch]$AsAdmin)
+
+    $RepoBase = 'https://raw.githubusercontent.com/s-weigand/ps-profile/main'
+    $RepoConfigPath = Join-Path $PSScriptRoot 'ps-profile.repo.ps1'
+    if (Test-Path $RepoConfigPath) {
+        try {
+            $RepoConfig = . $RepoConfigPath
+            if ($RepoConfig -and $RepoConfig.Base) {
+                $RepoBase = ('' + $RepoConfig.Base).TrimEnd('/')
+            }
+        } catch {
+            Write-Warning "Failed to load profile repo config from '$RepoConfigPath': $($PSItem.Exception.Message)"
+        }
+    }
+
+    $Shell = if (Get-Command pwsh -ErrorAction SilentlyContinue) { 'pwsh' } else { 'powershell' }
+    $UpdateUrl = "$RepoBase/update.ps1"
+    $ScriptCommand = "iex (irm '$UpdateUrl')"
+    $StartProcessArgs = @{
+        FilePath     = $Shell
+        ArgumentList = @("-NoExit", "-Command", $ScriptCommand)
+        Wait         = $True
+    }
+
+    if ($AsAdmin) { $StartProcessArgs.Verb = 'RunAs' }
+    Start-Process @StartProcessArgs
 }
 
 
@@ -23,24 +47,24 @@ function update-ps-profile {
 # This should be created by `broot --install` but isn't see ref:
 # https://github.com/Canop/broot/issues/788
 function br {
-    $cmd_file = New-TemporaryFile
+    $CmdFile = New-TemporaryFile
 
     try {
         # Use call operator with splatting for proper argument handling
-        $brootArgs = @('--outcmd', $cmd_file.FullName) + $args
-        & broot @brootArgs
-        $exitCode = $LASTEXITCODE
+        $BrootArgs = @('--outcmd', $CmdFile.FullName) + $Args
+        & broot @BrootArgs
+        $ExitCode = $LASTEXITCODE
     } catch {
-        $exitCode = 1
+        $ExitCode = 1
     }
 
-    If ($exitCode -eq 0) {
-        $cmd = Get-Content $cmd_file
-        Remove-Item $cmd_file
-        If ($cmd -ne $null) { Invoke-Expression -Command $cmd }
-    } Else {
-        Remove-Item $cmd_file
+    if ($ExitCode -eq 0) {
+        $Cmd = Get-Content $CmdFile
+        Remove-Item $CmdFile
+        if ($Cmd -ne $Null) { Invoke-Expression -Command $Cmd }
+    } else {
+        Remove-Item $CmdFile
         Write-Host "`n" # Newline to tidy up broot unexpected termination
-        Write-Error "broot.exe exited with error code $exitCode"
+        Write-Error "broot.exe exited with error code $ExitCode"
     }
 }

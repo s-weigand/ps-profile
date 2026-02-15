@@ -4,11 +4,40 @@
 
 A universal PowerShell profile that works across PowerShell 5.x and 7+ on Windows, with enhanced command-line tools and productivity features.
 
-## Quick Install
+## Quick Install (from upstream)
 
 ```powershell
 iex "& { $(irm 'https://raw.githubusercontent.com/s-weigand/ps-profile/main/install.ps1') }"
 ```
+
+## Install from your fork
+
+```powershell
+# Via parameters (recommended)
+./install.ps1 -RepoOwner your-user -RepoName ps-profile -Branch develop
+```
+
+You can also install directly from a fork/branch URL and pass matching arguments:
+
+```powershell
+iex "& { $(irm 'https://raw.githubusercontent.com/your-user/your-repo/refs/heads/your-branch/install.ps1') } -RepoOwner your-user -RepoName your-repo -Branch your-branch"
+```
+
+The installer always shows the repository and branch source.
+When installing from a non-upstream source, it asks for confirmation with `Continue? [Y/n]` (default is Yes).
+
+When installing from a fork, the installer writes a config file so `update-ps-profile` updates from your fork automatically.
+
+Priority: explicit parameter > upstream default.
+
+### Git prompt style
+
+During installation you can choose between two git prompt modes:
+
+- **Full status** (default) — shows branch, dirty/staged files, ahead/behind, stash count. May be slow in large repos or with antivirus scanning.
+- **Fast** — shows branch name only. Recommended if you experience prompt lag.
+
+Your choice is persisted and respected by `update-ps-profile`. To switch later, re-run the installer.
 
 ## Tools Included
 
@@ -107,11 +136,13 @@ rg --generate complete-powershell | Out-File ~\Documents\WindowsPowerShell\compl
 iex "& { $(irm 'https://raw.githubusercontent.com/s-weigand/ps-profile/main/update.ps1') }"
 ```
 
+Or use the `update-ps-profile` alias (updates from your configured repo).
+
 ## Customization
 
 Fork this repository and modify:
 
-- [Profile.ps1](Profile.ps1) - Main profile logic
+- [profile.ps1](profile.ps1) - Main profile logic
 - [aliases.ps1](aliases.ps1) - Custom functions and aliases
 - [themes/ohmy-posh.omp.json](themes/ohmy-posh.omp.json) - Prompt theme (try the [visual configurator](https://github.com/jamesmontemagno/ohmyposh-configurator))
 
